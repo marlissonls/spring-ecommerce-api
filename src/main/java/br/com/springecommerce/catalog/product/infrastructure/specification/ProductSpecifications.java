@@ -4,6 +4,7 @@ import br.com.springecommerce.catalog.brand.domain.model.Brand;
 import br.com.springecommerce.catalog.category.domain.model.Category;
 import br.com.springecommerce.inventory.stock.domain.model.Stock;
 import br.com.springecommerce.catalog.product.domain.model.Product;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -82,17 +83,27 @@ public class ProductSpecifications {
     }
 
     public static Specification<Product> minPrice(BigDecimal minPrice) {
-        return (root, query, cb) ->
-                minPrice == null
-                        ? null
-                        : cb.greaterThanOrEqualTo(root.get("price"), minPrice);
+        return (root, query, cb) -> {
+            if (minPrice == null) {
+                return null;
+            }
+
+            Expression<BigDecimal> effectivePrice = cb.coalesce(root.get("salePrice"), root.get("price"));
+
+            return cb.greaterThanOrEqualTo(effectivePrice, minPrice);
+        };
     }
 
     public static Specification<Product> maxPrice(BigDecimal maxPrice) {
-        return (root, query, cb) ->
-                maxPrice == null
-                        ? null
-                        : cb.lessThanOrEqualTo(root.get("price"), maxPrice);
+        return (root, query, cb) -> {
+            if (maxPrice == null) {
+                return null;
+            }
+
+            Expression<BigDecimal> effectivePrice = cb.coalesce(root.get("salePrice"), root.get("price"));
+
+            return cb.lessThanOrEqualTo(effectivePrice, maxPrice);
+        };
     }
 
     public static Specification<Product> minCost(BigDecimal minCost) {

@@ -14,20 +14,16 @@ public final class PublicEndpoints {
             new AntPathRequestMatcher("/v3/api-docs/**"),
             new AntPathRequestMatcher("/swagger-ui/**"),
 
-            new AntPathRequestMatcher(
-                    "/api/v1/users",
-                    HttpMethod.POST.name()
-            ),
+            new AntPathRequestMatcher("/api/v1/users", HttpMethod.POST.name()),
 
-            new AntPathRequestMatcher(
-                    "/api/v1/products",
-                    HttpMethod.GET.name()
-            ),
+            new AntPathRequestMatcher("/api/v1/products", HttpMethod.GET.name()),
+            new AntPathRequestMatcher("/api/v1/products/slug/**", HttpMethod.GET.name()),
 
-            new AntPathRequestMatcher(
-                    "/api/v1/products/slug/**",
-                    HttpMethod.GET.name()
-            )
+            new AntPathRequestMatcher("/api/v1/categories", HttpMethod.GET.name()),
+            new AntPathRequestMatcher("/api/v1/categories/slug/**", HttpMethod.GET.name()),
+
+            new AntPathRequestMatcher("/api/v1/brands", HttpMethod.GET.name()),
+            new AntPathRequestMatcher("/api/v1/brands/slug/**", HttpMethod.GET.name())
     );
 
     private PublicEndpoints() {}
