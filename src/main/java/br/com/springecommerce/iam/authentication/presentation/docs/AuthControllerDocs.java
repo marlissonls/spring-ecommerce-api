@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
 @Tag(name = "Authentication", description = "Endpoints for User Authentication")
@@ -24,7 +25,7 @@ public interface AuthControllerDocs {
                     @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
             }
     )
-    ResponseEntity<TokenDto> signIn(AccountCredentialsDto credentials);
+    ResponseEntity<TokenDto> signIn(@Valid AccountCredentialsDto credentials);
 
     @Operation(
             summary = "Refresh token for authenticated user and returns a token",
@@ -36,5 +37,5 @@ public interface AuthControllerDocs {
                     @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
             }
     )
-    ResponseEntity<TokenDto> refresh(RefreshTokenDto refresh);
+    ResponseEntity<TokenDto> refresh(@Valid RefreshTokenDto refresh);
 }

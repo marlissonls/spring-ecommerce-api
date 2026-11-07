@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController implements AuthControllerDocs {
 
     private final AuthService service;
@@ -25,14 +25,14 @@ public class AuthController implements AuthControllerDocs {
 
     @Override
     @PostMapping(path = "/signin", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TokenDto> signIn(@RequestBody @Valid AccountCredentialsDto credentials) {
+    public ResponseEntity<TokenDto> signIn(@RequestBody AccountCredentialsDto credentials) {
 
         return ResponseEntity.ok().body(service.signIn(credentials));
     }
 
     @Override
     @PostMapping(path = "/refresh", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TokenDto> refresh(@RequestBody @Valid RefreshTokenDto refresh) {
+    public ResponseEntity<TokenDto> refresh(@RequestBody RefreshTokenDto refresh) {
 
         return ResponseEntity.ok().body(service.refreshToken(refresh));
     }
