@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -46,7 +47,7 @@ public class ProductController implements ProductControllerDocs {
     // findBySlug
     @Override
     @GetMapping(path = "/slug/{slug}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ProductPublicResponseDto> findBySlug(@PathVariable("slug") String slug) {
+    public ResponseEntity<ProductPublicDetailsResponseDto> findBySlug(@PathVariable("slug") String slug) {
         return ResponseEntity.ok().body(service.findBySlug(slug));
     }
 
@@ -55,7 +56,7 @@ public class ProductController implements ProductControllerDocs {
     @Override
     @GetMapping(path = "/manager", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<PageResponse<ProductWithStockResponseDto>> searchManagerViewProducts(
+    public ResponseEntity<PageResponse<ProductManagerResponseDto>> searchManagerViewProducts(
             @ModelAttribute ProductManagerFilter filter,
             @PageableDefault(size = 12, sort = "title") Pageable pageable
     ) {
@@ -68,7 +69,7 @@ public class ProductController implements ProductControllerDocs {
     @Override
     @GetMapping(path = "/manager/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ProductWithStockResponseDto> findById(@PathVariable("id") UUID id) {
+    public ResponseEntity<ProductManagerDetailsResponseDto> findById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok().body(service.findById(id));
     }
 
@@ -76,7 +77,7 @@ public class ProductController implements ProductControllerDocs {
     @Override
     @GetMapping(path = "/manager/barcode/{barcode}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ProductWithStockResponseDto> findByBarcode(@PathVariable("barcode") String barcode) {
+    public ResponseEntity<ProductManagerDetailsResponseDto> findByBarcode(@PathVariable("barcode") String barcode) {
         return ResponseEntity.ok().body(service.findByBarcode(barcode));
     }
 
@@ -84,7 +85,7 @@ public class ProductController implements ProductControllerDocs {
     @Override
     @GetMapping(path = "/manager/sku/{sku}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ProductWithStockResponseDto> findBySku(@PathVariable("sku") String sku) {
+    public ResponseEntity<ProductManagerDetailsResponseDto> findBySku(@PathVariable("sku") String sku) {
         return ResponseEntity.ok().body(service.findBySku(sku));
     }
 
@@ -92,7 +93,7 @@ public class ProductController implements ProductControllerDocs {
     @Override
     @PostMapping(path = "/manager", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ProductResponseDto> create(@RequestBody @Valid ProductCreateDto dto) {
+    public ResponseEntity<ProductResponseDto> create(@RequestBody ProductCreateDto dto) {
         ProductResponseDto response = service.create(dto);
 
         URI location = ServletUriComponentsBuilder
@@ -109,8 +110,8 @@ public class ProductController implements ProductControllerDocs {
     @PutMapping(path = "/manager/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<ProductResponseDto> update(
-            @PathVariable("id") @NotNull UUID id,
-            @RequestBody @Valid ProductUpdateDto dto) {
+            @PathVariable("id") UUID id,
+            @RequestBody ProductUpdateDto dto) {
         return ResponseEntity.ok().body(service.update(id, dto));
     }
 
@@ -118,7 +119,7 @@ public class ProductController implements ProductControllerDocs {
     @Override
     @PatchMapping(path = "/manager/{id}/deactivate")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Void> deactivate(@PathVariable("id") @NotNull UUID id) {
+    public ResponseEntity<Void> deactivate(@PathVariable("id") UUID id) {
         service.deactivate(id);
         return ResponseEntity.noContent().build();
     }
@@ -127,12 +128,39 @@ public class ProductController implements ProductControllerDocs {
     @Override
     @PatchMapping(path = "/manager/{id}/activate")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Void> activate(@PathVariable("id") @NotNull UUID id) {
+    public ResponseEntity<Void> activate(@PathVariable("id") UUID id) {
         service.activate(id);
         return ResponseEntity.noContent().build();
     }
 
-    // addImages
+    @PostMapping(path = "/manager/{id}/images", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<Void> addImages(
+            @PathVariable("id") UUID id,
+            @RequestBody @Valid List<ProductImageCreateDto> images
+    ) {
+        service.addImages(id, images);
+        return ResponseEntity.noContent().build();
+    }
 
-    // removeImage
+//    @PatchMapping("/manager/{id}/images")
+//    @PreAuthorize("hasRole('MANAGER')")
+//    public ResponseEntity<Void> updateImages(
+//            @PathVariable("id") UUID id,
+//            @RequestBody @Valid List<ProductImageCreateDto> images
+//    ) {
+//        service.updateImages(id, images);
+//        return ResponseEntity.noContent().build();
+//    }
+//
+//    @DeleteMapping("/manager/{id}/images/{publicId}")
+//    @PreAuthorize("hasRole('MANAGER')")
+//    public ResponseEntity<Void> removeImage(
+//            @PathVariable("id") UUID id,
+//            @PathVariable("publicId") String publicId,
+//            @RequestBody @Valid List<ProductImageCreateDto> images
+//    ) {
+//        service.removeImages(id, publicId, images);
+//        return ResponseEntity.noContent().build();
+//    }
 }

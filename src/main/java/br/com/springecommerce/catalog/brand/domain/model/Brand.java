@@ -1,10 +1,15 @@
 package br.com.springecommerce.catalog.brand.domain.model;
 
-//import br.com.springecommerce.domain.product.catalog.Product;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name = "brands")
@@ -25,14 +30,13 @@ public class Brand {
     @Column(nullable = false)
     private Boolean active = false;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-//    @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-//    private Set<Product> products = new HashSet<>();
 
     protected Brand() {}
 
@@ -41,6 +45,7 @@ public class Brand {
         String slug,
         String description
     ) {
+        this.id = UUID.randomUUID();
         this.title = title;
         this.slug = slug;
         this.description = description;
@@ -48,20 +53,6 @@ public class Brand {
 
     public static Brand createFrom(String title, String slug, String description) {
         return new Brand(title, slug, description);
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        if (id == null)
-            id = UUID.randomUUID();
-
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdated() {
-        updatedAt = LocalDateTime.now();
     }
 
     public UUID getId() {
@@ -119,14 +110,6 @@ public class Brand {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-//    public Set<Product> getProducts() {
-//        return products;
-//    }
-//
-//    public void setProducts(Set<Product> products) {
-//        this.products = products;
-//    }
 
     @Override
     public boolean equals(Object o) {

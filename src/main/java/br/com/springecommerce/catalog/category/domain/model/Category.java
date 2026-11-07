@@ -1,10 +1,15 @@
 package br.com.springecommerce.catalog.category.domain.model;
 
-//import br.com.springecommerce.domain.product.catalog.Product;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name = "categories")
@@ -26,14 +31,19 @@ public class Category {
     @Column(nullable = false)
     private Boolean active = false;
 
+    @Column(name = "image_url", length = 2048)
+    private String imageUrl;
+
+    @Column(name = "image_public_id")
+    private String imagePublicId;
+
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-//    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-//    private Set<Product> products = new HashSet<>();
 
     protected Category() {}
 
@@ -42,6 +52,7 @@ public class Category {
         String slug,
         String description
     ) {
+        this.id = UUID.randomUUID();
         this.title = title;
         this.slug = slug;
         this.description = description;
@@ -49,20 +60,6 @@ public class Category {
 
     public static Category createFrom(String title, String slug, String description) {
         return new Category(title, slug, description);
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        if (id == null)
-            id = UUID.randomUUID();
-
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdated() {
-        updatedAt = LocalDateTime.now();
     }
 
     public UUID getId() {
@@ -101,6 +98,22 @@ public class Category {
         return active;
     }
 
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getImagePublicId() {
+        return imagePublicId;
+    }
+
+    public void setImagePublicId(String imagePublicId) {
+        this.imagePublicId = imagePublicId;
+    }
+
     public void setActive(Boolean active) {
         this.active = active;
     }
@@ -120,14 +133,6 @@ public class Category {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-//    public Set<Product> getProducts() {
-//        return products;
-//    }
-//
-//    public void setProducts(Set<Product> products) {
-//        this.products = products;
-//    }
 
     @Override
     public boolean equals(Object o) {

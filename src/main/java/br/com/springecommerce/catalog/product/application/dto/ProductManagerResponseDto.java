@@ -1,15 +1,14 @@
 package br.com.springecommerce.catalog.product.application.dto;
 
 import br.com.springecommerce.catalog.product.domain.model.Product;
-import br.com.springecommerce.catalog.product.valueobject.ProductImage;
+import br.com.springecommerce.catalog.product.domain.valueobject.ProductImage;
 import br.com.springecommerce.inventory.stock.domain.model.Stock;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
-public record ProductWithStockResponseDto(
+public record ProductManagerResponseDto(
         UUID id,
         String title,
         String slug,
@@ -26,13 +25,13 @@ public record ProductWithStockResponseDto(
         Integer ratingCount,
         Boolean active,
         Boolean featured,
-        String imageUrl,
+        ProductImageResponseDto image,
         UUID categoryId,
         UUID brandId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public ProductWithStockResponseDto(Product product, ProductImage image, Stock stock) {
+    public ProductManagerResponseDto(Product product, ProductImageResponseDto image, Stock stock) {
         this(
             product.getId(),
             product.getTitle(),
@@ -50,7 +49,7 @@ public record ProductWithStockResponseDto(
             product.getRatingCount(),
             product.getActive(),
             product.getFeatured(),
-            image.getImageUrl(),
+            image,
             product.getCategoryId(),
             product.getBrandId(),
             product.getCreatedAt(),

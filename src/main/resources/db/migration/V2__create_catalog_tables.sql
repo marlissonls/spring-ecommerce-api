@@ -7,6 +7,9 @@ CREATE TABLE IF NOT EXISTS categories (
     description VARCHAR(255),
     active BOOLEAN DEFAULT FALSE,
 
+    image_url VARCHAR(2048),
+    image_public_id VARCHAR(255),
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -63,4 +66,19 @@ CREATE TABLE IF NOT EXISTS products (
 
     CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES categories (id),
     CONSTRAINT fk_product_brand FOREIGN KEY (brand_id) REFERENCES brands (id)
+) ENGINE=InnoDB;
+
+--
+CREATE TABLE IF NOT EXISTS product_images (
+    public_id VARCHAR(150) NOT NULL,
+    product_id CHAR(36) NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    position INT NOT NULL DEFAULT 0,
+    main BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT chk_product_images_position CHECK (position >= 0),
+
+    CONSTRAINT pk_product_images PRIMARY KEY (public_id),
+
+    CONSTRAINT fk_product_images_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

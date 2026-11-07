@@ -2,11 +2,7 @@ package br.com.springecommerce.catalog.product.application.service;
 
 import br.com.springecommerce.catalog.brand.application.service.BrandService;
 import br.com.springecommerce.catalog.category.application.service.CategoryService;
-import br.com.springecommerce.catalog.product.application.dto.ProductPublicResponseDto;
-import br.com.springecommerce.catalog.product.application.dto.ProductCreateDto;
-import br.com.springecommerce.catalog.product.application.dto.ProductResponseDto;
-import br.com.springecommerce.catalog.product.application.dto.ProductWithStockResponseDto;
-import br.com.springecommerce.catalog.product.application.dto.ProductUpdateDto;
+import br.com.springecommerce.catalog.product.application.dto.*;
 import br.com.springecommerce.catalog.product.domain.exception.ProductUnavailableException;
 import br.com.springecommerce.catalog.product.domain.model.Product;
 import br.com.springecommerce.catalog.product.domain.exception.ProductErrors;
@@ -15,6 +11,7 @@ import br.com.springecommerce.catalog.product.presentation.filter.ProductPublicF
 import br.com.springecommerce.catalog.product.infrastructure.persistence.ProductRepository;
 import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot;
 import br.com.springecommerce.catalog.product.infrastructure.specification.ProductSpecificationFactory;
+import br.com.springecommerce.catalog.product.domain.valueobject.ProductImage;
 import br.com.springecommerce.inventory.stock.domain.model.Stock;
 import br.com.springecommerce.inventory.stock.application.service.StockQueryService;
 import br.com.springecommerce.shared.exception.base.ConflictException;
@@ -69,10 +66,15 @@ public class ProductService {
                 pageable
         );
 
-        var stocksByProductId = findStocksByProductIds(page);
+        var productIds = getProductIds(page);
+
+        var productImageByProductId = findMainProductImagesByProductIds(productIds);
+
+        var stocksByProductId = findStocksByProductIds(productIds);
 
         var items = page.map(product -> new ProductPublicResponseDto(
                 product,
+                productImageByProductId.get(product.getId()),
                 stocksByProductId.get(product.getId())
         )).getContent();
 
@@ -84,7 +86,7 @@ public class ProductService {
         );
     }
 
-    public PageResponse<ProductWithStockResponseDto> getManagerViewProducts(
+    public PageResponse<ProductManagerResponseDto> getManagerViewProducts(
             ProductManagerFilter filter, Pageable pageable
     ) {
         logger.debug("Fetching filtered products");
@@ -94,10 +96,15 @@ public class ProductService {
                 pageable
         );
 
-        var stocksByProductId = findStocksByProductIds(page);
+        var productIds = getProductIds(page);
 
-        var items = page.map(product -> new ProductWithStockResponseDto(
+        var productImageByProductId = findMainProductImagesByProductIds(productIds);
+
+        var stocksByProductId = findStocksByProductIds(productIds);
+
+        var items = page.map(product -> new ProductManagerResponseDto(
                 product,
+                productImageByProductId.get(product.getId()),
                 stocksByProductId.get(product.getId())
         )).getContent();
 
@@ -107,16 +114,6 @@ public class ProductService {
                 page.getSize(),
                 page.getTotalElements()
         );
-    }
-
-    public ProductWithStockResponseDto findById(UUID id) {
-        logger.debug("Fetching product id={}", id);
-
-        var product = findEntityById(id);
-
-        var stock = getStock(product);
-
-        return new ProductWithStockResponseDto(product, stock);
     }
 
     public ProductSnapshot getAvailableProduct(UUID id) {
@@ -129,37 +126,61 @@ public class ProductService {
                 );
     }
 
-    public ProductPublicResponseDto findBySlug(String slug) {
+    public ProductManagerDetailsResponseDto findById(UUID id) {
+        logger.debug("Fetching product id={}", id);
+
+        var product = findEntityById(id);
+
+        var productImages = findProductImagesByProductId(product.getId());
+
+        var stock = getStock(product);
+
+        return new ProductManagerDetailsResponseDto(product, productImages, stock);
+    }
+
+    public ProductPublicDetailsResponseDto findBySlug(String slug) {
         logger.debug("Fetching product slug={}", slug);
 
         var product = repository.findBySlugAndActiveTrue(slug)
-                .orElseThrow(() -> new ResourceNotFoundException(ProductErrors.Target.SLUG, ProductErrors.Code.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ProductErrors.Target.SLUG,
+                        ProductErrors.Code.PRODUCT_NOT_FOUND));
+
+        var productImages = findProductImagesByProductId(product.getId());
 
         var stock = getStock(product);
 
-        return new ProductPublicResponseDto(product, stock);
+        return new ProductPublicDetailsResponseDto(product, productImages, stock);
     }
 
-    public ProductWithStockResponseDto findByBarcode(String barcode) {
+    public ProductManagerDetailsResponseDto findByBarcode(String barcode) {
         logger.debug("Fetching product barcode={}", barcode);
 
         var product = repository.findByBarcode(barcode)
-                .orElseThrow(() -> new ResourceNotFoundException(ProductErrors.Target.BARCODE, ProductErrors.Code.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ProductErrors.Target.BARCODE,
+                        ProductErrors.Code.PRODUCT_NOT_FOUND));
+
+        var productImages = findProductImagesByProductId(product.getId());
 
         var stock = getStock(product);
 
-        return new ProductWithStockResponseDto(product, stock);
+        return new ProductManagerDetailsResponseDto(product, productImages, stock);
     }
 
-    public ProductWithStockResponseDto findBySku(String sku) {
+    public ProductManagerDetailsResponseDto findBySku(String sku) {
         logger.debug("Fetching product sku={}", sku);
 
         var product = repository.findBySku(sku)
-                .orElseThrow(() -> new ResourceNotFoundException(ProductErrors.Target.SKU, ProductErrors.Code.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ProductErrors.Target.SKU,
+                        ProductErrors.Code.PRODUCT_NOT_FOUND));
+
+        var productImages = findProductImagesByProductId(product.getId());
 
         var stock = getStock(product);
 
-        return new ProductWithStockResponseDto(product, stock);
+        return new ProductManagerDetailsResponseDto(product, productImages, stock);
     }
 
     @Transactional
@@ -321,17 +342,55 @@ public class ProductService {
                 .orElse(null);
     }
 
-    private Map<UUID, Stock> findStocksByProductIds(Page<Product> page) {
-        List<UUID> ids = page.getContent()
+    private List<UUID> getProductIds(Page<Product> page) {
+        return page.getContent()
                 .stream()
                 .map(Product::getId)
                 .toList();
+    }
 
-        return stockQueryService.findByProductIdIn(ids)
+    private List<ProductImage> findProductImagesByProductId(UUID productId) {
+        return repository.findProductImagesByProductId(productId);
+    }
+
+    private Map<UUID, ProductImageResponseDto> findMainProductImagesByProductIds(
+            List<UUID> productIds
+    ) {
+        return repository.findMainProductImagesByProductIds(productIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (UUID) row[0],
+                        row -> new ProductImageResponseDto((ProductImage) row[1])
+                ));
+    }
+
+    private Map<UUID, Stock> findStocksByProductIds(List<UUID> productIds) {
+        return stockQueryService.findByProductIdIn(productIds)
                 .stream()
                 .collect(Collectors.toMap(
                         Stock::getProductId,
                         Function.identity()
                 ));
     }
+
+    @Transactional
+    public void addImages(UUID id, List<ProductImageCreateDto> images) {
+        Product product = findEntityById(id);
+
+        product.addImages(images);
+    }
+
+//    @Transactional
+//    public void updateImages(UUID id, List<ProductImageCreateDto> images) {
+//        Product product = findEntityById(id);
+//
+//        product.updateImages(images);
+//    }
+//
+//    @Transactional
+//    public void removeImages(UUID id, String publicId, List<ProductImageCreateDto> images) {
+//        Product product = findEntityById(id);
+//
+//        product.removeImages(images);
+//    }
 }
