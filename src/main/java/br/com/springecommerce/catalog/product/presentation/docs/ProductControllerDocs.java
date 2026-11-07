@@ -11,10 +11,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Products", description = "Endpoints for Products management")
@@ -46,7 +53,7 @@ public interface ProductControllerDocs {
                     @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
             }
     )
-    ResponseEntity<ProductPublicResponseDto> findBySlug(String slug);
+    ResponseEntity<ProductPublicDetailsResponseDto> findBySlug(String slug);
 
     @Operation(
             summary = "Searching manager Products",
@@ -61,7 +68,7 @@ public interface ProductControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<PageResponse<ProductWithStockResponseDto>> searchManagerViewProducts(
+    ResponseEntity<PageResponse<ProductManagerResponseDto>> searchManagerViewProducts(
             @ParameterObject ProductManagerFilter filter,
             @ParameterObject Pageable pageable
     );
@@ -80,7 +87,7 @@ public interface ProductControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ProductWithStockResponseDto> findById(UUID id);
+    ResponseEntity<ProductManagerDetailsResponseDto> findById(UUID id);
 
     @Operation(
             summary = "Fetching Product by barcode",
@@ -96,7 +103,7 @@ public interface ProductControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ProductWithStockResponseDto> findByBarcode(String barcode);
+    ResponseEntity<ProductManagerDetailsResponseDto> findByBarcode(String barcode);
 
     @Operation(
             summary = "Fetching Product by SKU",
@@ -112,7 +119,7 @@ public interface ProductControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ProductWithStockResponseDto> findBySku(String sku);
+    ResponseEntity<ProductManagerDetailsResponseDto> findBySku(String sku);
 
     @Operation(
             summary = "Creating a Product",
@@ -127,7 +134,7 @@ public interface ProductControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ProductResponseDto> create(ProductCreateDto dto);
+    ResponseEntity<ProductResponseDto> create(@Valid ProductCreateDto dto);
 
     @Operation(
             summary = "Updating a Product",
@@ -145,7 +152,7 @@ public interface ProductControllerDocs {
     @SecurityRequirement(name = "bearerAuth")
     ResponseEntity<ProductResponseDto> update(
             UUID id,
-            ProductUpdateDto dto
+            @Valid ProductUpdateDto dto
     );
 
     @Operation(
@@ -179,5 +186,24 @@ public interface ProductControllerDocs {
     )
     @SecurityRequirement(name = "bearerAuth")
     ResponseEntity<Void> activate(UUID id);
+
+    @Operation(
+            summary = "Adding images to a Product",
+            description = "Add images to a Product by its ID",
+            tags = {"Products"},
+            responses = {
+                    @ApiResponse(description = "No Content", responseCode = "204"),
+                    @ApiResponse(description = "Bad Request", responseCode = "400", content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(description = "Unauthorized", responseCode = "401", content = @Content),
+                    @ApiResponse(description = "Forbidden", responseCode = "403", content = @Content),
+                    @ApiResponse(description = "Not Found", responseCode = "404", content = @Content),
+                    @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
+            }
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<Void> addImages(
+            UUID id,
+            @Valid List<ProductImageCreateDto> images
+    );
 }
 

@@ -2,10 +2,14 @@ package br.com.springecommerce.catalog.product.domain.model;
 
 import br.com.springecommerce.catalog.brand.domain.model.Brand;
 import br.com.springecommerce.catalog.category.domain.model.Category;
-import br.com.springecommerce.catalog.product.application.dto.ProductUpdateDto;
-import br.com.springecommerce.inventory.stock.domain.model.Stock;
 import br.com.springecommerce.catalog.product.application.dto.ProductCreateDto;
+import br.com.springecommerce.catalog.product.application.dto.ProductImageCreateDto;
+import br.com.springecommerce.catalog.product.application.dto.ProductUpdateDto;
+import br.com.springecommerce.catalog.product.domain.valueobject.ProductImage;
+import br.com.springecommerce.inventory.stock.domain.model.Stock;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -68,17 +72,23 @@ public class Product {
     @Column(nullable = false)
     private Boolean featured = false;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Stock> stocks = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-//    private Set<ProductImage> productImages = new HashSet<>();
+    @ElementCollection
+    @CollectionTable(
+            name = "product_images",
+            joinColumns = @JoinColumn(name = "product_id")
+    )
+    private Set<ProductImage> images = new HashSet<>();
 
     protected Product() {}
 
@@ -94,6 +104,7 @@ public class Product {
             Category category,
             Brand brand
     ) {
+        this.id = UUID.randomUUID();
         this.title = title;
         this.slug = slug;
         this.description = description;
@@ -157,18 +168,17 @@ public class Product {
         }
     }
 
-    @PrePersist
-    protected void onCreate() {
-        if (id == null)
-            id = UUID.randomUUID();
+    public void addImages(List<ProductImageCreateDto> imagesDto) {
+        for (ProductImageCreateDto dto : imagesDto) {
+            ProductImage productImage = new ProductImage(
+                    dto.publicId(),
+                    dto.url(),
+                    dto.position(),
+                    dto.main()
+            );
 
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+            images.add(productImage);
+        }
     }
 
     public UUID getId() {
@@ -330,14 +340,6 @@ public class Product {
     public void setStocks(List<Stock> stocks) {
         this.stocks = stocks;
     }
-
-//    public Set<ProductImage> getProductImages() {
-//        return productImages;
-//    }
-//
-//    public void setProductImages(Set<ProductImage> productImages) {
-//        this.productImages = productImages;
-//    }
 
     @Override
     public boolean equals(Object o) {
