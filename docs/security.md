@@ -10,7 +10,7 @@ The implementation separates credential authentication, token issuance, request 
 
 ### Credential Authentication
 
-Users authenticate through `POST /auth/signin`, submitting their email and password.
+Users authenticate through `POST /api/v1/auth/signin`, submitting their email and password.
 
 The authentication flow delegates credential verification to Spring Security's `AuthenticationManager`. The `AuthenticatedUserDetailsService` loads the user by email, retrieves their roles, and provides the account information required for authentication.
 
@@ -30,7 +30,7 @@ Invalid access tokens are converted into application exceptions and delegated to
 
 ### Token Refresh
 
-Clients can submit a refresh token to `POST /auth/refresh` to request new tokens. Refresh tokens are validated separately from access tokens.
+Clients can submit a refresh token to `POST /api/v1/auth/refresh` to request new tokens. Refresh tokens are validated separately from access tokens.
 
 ## 3. Authorization
 

@@ -8,8 +8,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public final class PublicEndpoints {
 
     private static final RequestMatcher MATCHER = new OrRequestMatcher(
-            new AntPathRequestMatcher("/auth/signin"),
-            new AntPathRequestMatcher("/auth/refresh/**"),
+            new AntPathRequestMatcher("/api/v1/auth/signin"),
+            new AntPathRequestMatcher("/api/v1/auth/refresh/**"),
 
             new AntPathRequestMatcher("/v3/api-docs/**"),
             new AntPathRequestMatcher("/swagger-ui/**"),

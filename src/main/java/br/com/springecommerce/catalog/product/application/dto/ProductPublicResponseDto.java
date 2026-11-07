@@ -1,9 +1,11 @@
 package br.com.springecommerce.catalog.product.application.dto;
 
 import br.com.springecommerce.catalog.product.domain.model.Product;
+import br.com.springecommerce.catalog.product.valueobject.ProductImage;
 import br.com.springecommerce.inventory.stock.domain.model.Stock;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public record ProductPublicResponseDto(
@@ -17,10 +19,11 @@ public record ProductPublicResponseDto(
         Boolean featured,
         BigDecimal rating,
         Integer ratingCount,
+        String imageUrl,
         UUID categoryId,
         UUID brandId
 ) {
-    public ProductPublicResponseDto(Product product, Stock stock) {
+    public ProductPublicResponseDto(Product product, ProductImage image, Stock stock) {
         this(
             product.getId(),
             product.getTitle(),
@@ -32,6 +35,7 @@ public record ProductPublicResponseDto(
             product.getFeatured(),
             product.getRating(),
             product.getRatingCount(),
+            image.getImageUrl(),
             product.getCategoryId(),
             product.getBrandId()
         );

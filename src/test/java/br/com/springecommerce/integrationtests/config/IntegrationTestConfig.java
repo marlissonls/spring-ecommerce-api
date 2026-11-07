@@ -15,7 +15,7 @@ public class IntegrationTestConfig {
     @Bean
     RequestSpecification authenticationSpecification() {
         return new RequestSpecBuilder()
-                .setBasePath("/auth")
+                .setBasePath("/api/v1/auth")
                 .setPort(TestConfigs.SERVER_PORT)
                 .addFilter(new RequestLoggingFilter(LogDetail.ALL))
                 .addFilter(new ResponseLoggingFilter(LogDetail.ALL))

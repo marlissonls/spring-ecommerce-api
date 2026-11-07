@@ -41,10 +41,10 @@ The API uses JSON Web Tokens (JWT) for authentication. Access to protected opera
 
 ### Authentication
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| POST | `/auth/signin` | Authenticate a user and generate an access token |
-| POST | `/auth/refresh` | Refresh an access token using a refresh token |
+| Method | Endpoint               | Description |
+| --- |------------------------| --- |
+| POST | `/api/v1/auth/signin`  | Authenticate a user and generate an access token |
+| POST | `/api/v1/auth/refresh` | Refresh an access token using a refresh token |
 
 ## Catalog
 
