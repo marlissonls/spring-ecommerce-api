@@ -54,7 +54,7 @@ public class CustomerController implements CustomerControllerDocs {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<CustomerResponseDto> me(@AuthenticationPrincipal AuthenticatedUser auth) {
 
-        return ResponseEntity.ok().body(service.me(auth.getId()));
+        return ResponseEntity.ok().body(service.me(auth.getCustomerId()));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class CustomerController implements CustomerControllerDocs {
             @AuthenticationPrincipal AuthenticatedUser auth,
             @RequestBody @Valid CustomerCreateDto dto
     ) {
-        CustomerResponseDto response = service.create(auth.getId(), dto);
+        CustomerResponseDto response = service.create(auth.getCustomerId(), dto);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

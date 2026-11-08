@@ -166,7 +166,7 @@ public class CustomerService {
     public Customer findCustomer(UUID id) {
         logger.debug("Fetching customer by userId={}", id);
 
-        return repository.findById(id).orElse(null);
+        return repository.findByUserId(id).orElse(null);
     }
 
     private void validateCustomerUniqueness(UUID userId, String cpf) {

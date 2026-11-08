@@ -5,8 +5,6 @@ import br.com.springecommerce.sales.order.application.service.OrderService;
 import br.com.springecommerce.iam.security.principal.AuthenticatedUser;
 import br.com.springecommerce.sales.order.presentation.docs.OrderControllerDocs;
 import br.com.springecommerce.shared.pagination.PageResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -32,7 +30,7 @@ public class OrderController implements OrderControllerDocs {
             @AuthenticationPrincipal AuthenticatedUser auth,
             @PathVariable("id") UUID id
     ) {
-        return ResponseEntity.ok().body(service.getOrder(id, auth.getId()));
+        return ResponseEntity.ok().body(service.getOrder(id, auth.getCustomerId()));
     }
 
     @Override
@@ -42,7 +40,7 @@ public class OrderController implements OrderControllerDocs {
             @PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable
     ) {
-        return ResponseEntity.ok().body(service.getOrders(auth.getId(), pageable));
+        return ResponseEntity.ok().body(service.getOrders(auth.getCustomerId(), pageable));
     }
 
     @Override
@@ -51,7 +49,7 @@ public class OrderController implements OrderControllerDocs {
             @AuthenticationPrincipal AuthenticatedUser auth,
             @PathVariable("id") UUID id
     ) {
-        service.cancel(id, auth.getId());
+        service.cancel(id, auth.getCustomerId());
         return ResponseEntity.noContent().build();
     }
 }
