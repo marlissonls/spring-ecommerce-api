@@ -1,8 +1,8 @@
 package br.com.springecommerce.iam.authentication.presentation.docs;
 
 import br.com.springecommerce.iam.authentication.application.dto.AccountCredentialsDto;
+import br.com.springecommerce.iam.authentication.application.dto.AuthenticationResponseDto;
 import br.com.springecommerce.iam.authentication.application.dto.RefreshTokenDto;
-import br.com.springecommerce.iam.authentication.application.dto.TokenDto;
 import br.com.springecommerce.shared.exception.response.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,7 +25,7 @@ public interface AuthControllerDocs {
                     @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
             }
     )
-    ResponseEntity<TokenDto> signIn(@Valid AccountCredentialsDto credentials);
+    ResponseEntity<AuthenticationResponseDto> signIn(@Valid AccountCredentialsDto credentials);
 
     @Operation(
             summary = "Refresh token for authenticated user and returns a token",
@@ -37,5 +37,5 @@ public interface AuthControllerDocs {
                     @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
             }
     )
-    ResponseEntity<TokenDto> refresh(@Valid RefreshTokenDto refresh);
+    ResponseEntity<AuthenticationResponseDto> refresh(@Valid RefreshTokenDto refresh);
 }

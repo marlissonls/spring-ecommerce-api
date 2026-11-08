@@ -1,14 +1,15 @@
 package br.com.springecommerce.customer.customer.application.service;
 
 import br.com.springecommerce.customer.customer.application.dto.CustomerCreateDto;
-import br.com.springecommerce.customer.customer.application.dto.CustomerUpdateDto;
+import br.com.springecommerce.customer.customer.application.dto.CustomerCreateFromUser;
 import br.com.springecommerce.customer.customer.application.dto.CustomerResponseDto;
-import br.com.springecommerce.customer.customer.domain.model.Customer;
+import br.com.springecommerce.customer.customer.application.dto.CustomerUpdateDto;
 import br.com.springecommerce.customer.customer.application.mapper.CustomerMapper;
-import br.com.springecommerce.customer.customer.infrastructure.persistence.CustomerRepository;
 import br.com.springecommerce.customer.customer.domain.exception.CustomerErrors;
+import br.com.springecommerce.customer.customer.domain.model.Customer;
+import br.com.springecommerce.customer.customer.infrastructure.persistence.CustomerRepository;
+import br.com.springecommerce.iam.user.application.service.UserQueryService;
 import br.com.springecommerce.iam.user.domain.model.User;
-import br.com.springecommerce.iam.user.application.service.UserService;
 import br.com.springecommerce.shared.exception.base.ConflictException;
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
 import br.com.springecommerce.shared.pagination.PageResponse;
@@ -31,12 +32,12 @@ public class CustomerService {
 
     private final CustomerMapper mapper;
 
-    private final UserService userService;
+    private final UserQueryService userService;
 
     public CustomerService(
             CustomerRepository repository,
             CustomerMapper mapper,
-            UserService userService
+            UserQueryService userService
     ) {
         this.repository = repository;
         this.mapper = mapper;
@@ -106,6 +107,19 @@ public class CustomerService {
     }
 
     @Transactional
+    public void createFromUser(UUID userId, CustomerCreateFromUser dto) {
+
+        validateCustomerUniqueness(userId, dto.cpf());
+
+        User user = userService.getValidReference(userId);
+
+        Customer customer = mapper.toEntityFromUser(dto);
+        customer.assignUser(user);
+
+        repository.save(customer);
+    }
+
+    @Transactional
     public CustomerResponseDto update(UUID id, CustomerUpdateDto dto) {
 
         logger.debug("Updating customer. customerId={}", id);
@@ -138,7 +152,6 @@ public class CustomerService {
     }
 
     private Customer findEntityById(UUID id) {
-
         logger.debug("Fetching customer. customerId={}", id);
 
         return repository.findById(id)
@@ -148,6 +161,12 @@ public class CustomerService {
                             CustomerErrors.Target.ID,
                             CustomerErrors.Code.CUSTOMER_NOT_FOUND);
                 });
+    }
+
+    public Customer findCustomer(UUID id) {
+        logger.debug("Fetching customer by userId={}", id);
+
+        return repository.findById(id).orElse(null);
     }
 
     private void validateCustomerUniqueness(UUID userId, String cpf) {

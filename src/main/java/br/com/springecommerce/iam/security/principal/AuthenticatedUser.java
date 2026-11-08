@@ -4,6 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -11,6 +12,7 @@ public class AuthenticatedUser implements UserDetails {
     private UUID id;
     private String email;
     private String passwordHash;
+    private List<String> roles;
     private Collection<? extends GrantedAuthority> authorities;
     private Boolean accountNonExpired = true;
     private Boolean accountNonLocked = true;
@@ -21,6 +23,7 @@ public class AuthenticatedUser implements UserDetails {
             UUID id,
             String email,
             String passwordHash,
+            List<String> roles,
             Collection<? extends GrantedAuthority> authorities,
             boolean accountNonExpired,
             boolean accountNonLocked,
@@ -29,6 +32,7 @@ public class AuthenticatedUser implements UserDetails {
         this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
+        this.roles = roles;
         this.authorities = authorities;
         this.accountNonExpired = accountNonExpired;
         this.accountNonLocked = accountNonLocked;
@@ -103,6 +107,14 @@ public class AuthenticatedUser implements UserDetails {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 
     public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {

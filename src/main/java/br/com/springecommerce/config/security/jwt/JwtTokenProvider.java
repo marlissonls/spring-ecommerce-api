@@ -12,12 +12,14 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +59,7 @@ public class JwtTokenProvider {
         String accessToken = getAccessToken(userId, email, roles, now, validity);
         String refreshToken = getRefreshToken(userId, email, roles, now, refreshValidity);
 
-        return new TokenDto(userId, email, roles, true, now, validity, accessToken, refreshToken);
+        return new TokenDto(accessToken, refreshToken);
     }
 
     private String getAccessToken(UUID userId, String email, List<String> roles, Date now, Date validity) {
@@ -169,12 +171,8 @@ public class JwtTokenProvider {
     public TokenDto issueTokens(
             UUID id,
             String email,
-            Collection<? extends GrantedAuthority> authorities
+            List<String> roles
     ) {
-        List<String> roles = authorities.stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
-
         return createAccessToken(id, email, roles);
     }
 }

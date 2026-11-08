@@ -4,7 +4,8 @@ import br.com.springecommerce.iam.user.application.dto.UserCreateDto;
 import br.com.springecommerce.iam.user.application.dto.UserEmployeeCreateDto;
 import br.com.springecommerce.iam.user.application.dto.UserResponseDto;
 import br.com.springecommerce.iam.user.application.dto.UserUpdateRoleDto;
-import br.com.springecommerce.iam.user.application.service.UserService;
+import br.com.springecommerce.iam.user.application.service.UserCommandService;
+import br.com.springecommerce.iam.user.application.service.UserQueryService;
 import br.com.springecommerce.iam.user.presentation.docs.UserControllerDocs;
 import br.com.springecommerce.shared.pagination.PageResponse;
 import jakarta.validation.Valid;
@@ -24,10 +25,15 @@ import java.util.UUID;
 @RequestMapping("/api/v1/users")
 public class UserController implements UserControllerDocs {
 
-    private final UserService service;
+    private final UserQueryService queryService;
+    private final UserCommandService commandService;
 
-    public UserController(UserService service) {
-        this.service = service;
+    public UserController(
+            UserQueryService queryService,
+            UserCommandService commandService
+    ) {
+        this.queryService = queryService;
+        this.commandService = commandService;
     }
 
     @Override
@@ -38,7 +44,7 @@ public class UserController implements UserControllerDocs {
             Pageable pageable
     ) {
 
-        return ResponseEntity.ok().body(service.findAll(pageable));
+        return ResponseEntity.ok().body(queryService.findAll(pageable));
     }
 
     @Override
@@ -46,14 +52,14 @@ public class UserController implements UserControllerDocs {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDto> findById(@PathVariable("id") UUID id) {
 
-        return ResponseEntity.ok().body(service.findById(id));
+        return ResponseEntity.ok().body(queryService.findById(id));
     }
 
     @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserResponseDto> create(@RequestBody @Valid UserCreateDto dto) {
 
-        UserResponseDto response = service.create(dto);
+        UserResponseDto response = commandService.create(dto);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -69,7 +75,7 @@ public class UserController implements UserControllerDocs {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDto> createEmployee(@RequestBody @Valid UserEmployeeCreateDto dto) {
 
-        UserResponseDto response = service.createEmployee(dto);
+        UserResponseDto response = commandService.createEmployee(dto);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -85,7 +91,7 @@ public class UserController implements UserControllerDocs {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> assignRoleToUser(@RequestBody @Valid UserUpdateRoleDto dto) {
 
-        service.assignRoleToUser(dto);
+        commandService.assignRoleToUser(dto);
         return ResponseEntity.noContent().build();
     }
 
@@ -94,7 +100,7 @@ public class UserController implements UserControllerDocs {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> removeRoleFromUser(@RequestBody @Valid UserUpdateRoleDto dto) {
 
-        service.removeRoleFromUser(dto);
+        commandService.removeRoleFromUser(dto);
         return ResponseEntity.noContent().build();
     }
 
@@ -103,7 +109,7 @@ public class UserController implements UserControllerDocs {
     @PreAuthorize("hasRole('ADMIN') or authentication.principal.getId().equals(#id)")
     public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
 
-        service.delete(id);
+        commandService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -112,7 +118,7 @@ public class UserController implements UserControllerDocs {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deactivate(@PathVariable("id") UUID id) {
 
-        service.deactivate(id);
+        commandService.deactivate(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -122,7 +128,7 @@ public class UserController implements UserControllerDocs {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> activate(@PathVariable("id") UUID id) {
 
-        service.activate(id);
+        commandService.activate(id);
         return ResponseEntity.noContent().build();
     }
 }

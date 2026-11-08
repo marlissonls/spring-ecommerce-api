@@ -1,8 +1,8 @@
 package br.com.springecommerce.iam.security.authentication;
 
+import br.com.springecommerce.iam.security.principal.AuthenticatedUser;
 import br.com.springecommerce.iam.user.domain.model.User;
 import br.com.springecommerce.iam.user.infrastructure.persistence.UserRepository;
-import br.com.springecommerce.iam.security.principal.AuthenticatedUser;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -28,7 +28,9 @@ public class AuthenticatedUserDetailsService implements UserDetailsService {
                         "Username " + email + " not found!"
                 ));
 
-        var authorities = user.getRoles().stream()
+        var roles = user.getRoles();
+
+        var authorities = roles.stream()
                 .map(SimpleGrantedAuthority::new)
                 .toList();
 
@@ -36,6 +38,7 @@ public class AuthenticatedUserDetailsService implements UserDetailsService {
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
+                roles,
                 authorities,
                 user.isAccountNonExpired(),
                 user.isAccountNonLocked(),
