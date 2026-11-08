@@ -10,7 +10,5 @@ CREATE TABLE IF NOT EXISTS customers (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL,
 
-    CONSTRAINT fk_customers_user
-    FOREIGN KEY (id)
-    REFERENCES users(id)
+    CONSTRAINT fk_customers_user FOREIGN KEY (id) REFERENCES users(id)
 ) ENGINE=InnoDB;

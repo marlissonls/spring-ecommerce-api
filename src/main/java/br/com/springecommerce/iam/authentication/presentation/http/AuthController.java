@@ -1,11 +1,10 @@
 package br.com.springecommerce.iam.authentication.presentation.http;
 
 import br.com.springecommerce.iam.authentication.application.dto.AccountCredentialsDto;
+import br.com.springecommerce.iam.authentication.application.dto.AuthenticationResponseDto;
 import br.com.springecommerce.iam.authentication.application.dto.RefreshTokenDto;
-import br.com.springecommerce.iam.authentication.application.dto.TokenDto;
 import br.com.springecommerce.iam.authentication.application.service.AuthService;
 import br.com.springecommerce.iam.authentication.presentation.docs.AuthControllerDocs;
-import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,14 +24,14 @@ public class AuthController implements AuthControllerDocs {
 
     @Override
     @PostMapping(path = "/signin", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TokenDto> signIn(@RequestBody AccountCredentialsDto credentials) {
+    public ResponseEntity<AuthenticationResponseDto> signIn(@RequestBody AccountCredentialsDto credentials) {
 
         return ResponseEntity.ok().body(service.signIn(credentials));
     }
 
     @Override
     @PostMapping(path = "/refresh", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TokenDto> refresh(@RequestBody RefreshTokenDto refresh) {
+    public ResponseEntity<AuthenticationResponseDto> refresh(@RequestBody RefreshTokenDto refresh) {
 
         return ResponseEntity.ok().body(service.refreshToken(refresh));
     }

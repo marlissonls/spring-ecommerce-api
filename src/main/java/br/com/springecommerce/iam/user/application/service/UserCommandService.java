@@ -1,92 +1,62 @@
 package br.com.springecommerce.iam.user.application.service;
 
+import br.com.springecommerce.customer.customer.application.dto.CustomerCreateFromUser;
+import br.com.springecommerce.customer.customer.application.service.CustomerService;
+import br.com.springecommerce.iam.role.application.service.RoleService;
 import br.com.springecommerce.iam.role.domain.code.RoleCode;
 import br.com.springecommerce.iam.role.domain.model.Role;
-import br.com.springecommerce.iam.role.application.service.RoleService;
-import br.com.springecommerce.iam.user.application.dto.UserEmployeeCreateDto;
 import br.com.springecommerce.iam.user.application.dto.UserCreateDto;
-import br.com.springecommerce.iam.user.application.dto.UserUpdateRoleDto;
+import br.com.springecommerce.iam.user.application.dto.UserEmployeeCreateDto;
 import br.com.springecommerce.iam.user.application.dto.UserResponseDto;
+import br.com.springecommerce.iam.user.application.dto.UserUpdateRoleDto;
+import br.com.springecommerce.iam.user.application.mapper.UserMapper;
 import br.com.springecommerce.iam.user.domain.exception.UserErrors;
 import br.com.springecommerce.iam.user.domain.model.User;
-import br.com.springecommerce.iam.user.application.mapper.UserMapper;
 import br.com.springecommerce.iam.user.infrastructure.persistence.UserRepository;
 import br.com.springecommerce.shared.exception.base.ConflictException;
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
-import br.com.springecommerce.shared.pagination.PageResponse;
-import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class UserService {
+public class UserCommandService {
 
-    private final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private final Logger logger = LoggerFactory.getLogger(UserCommandService.class);
 
     private final UserRepository repository;
 
     private final RoleService roleService;
 
+    private final CustomerService customerService;
+
     private final UserMapper mapper;
 
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(
+    public UserCommandService(
             UserRepository repository,
             RoleService roleService,
+            CustomerService customerService,
             UserMapper mapper,
             PasswordEncoder passwordEncoder
     ) {
         this.repository = repository;
         this.roleService = roleService;
+        this.customerService = customerService;
         this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;
-    }
-
-    public PageResponse<UserResponseDto> findAll(Pageable pageable) {
-
-        logger.debug("Fetching all users. pagination={}", pageable);
-
-        var page = repository.findAll(pageable);
-
-        var users = repository.findAllWithRolesByIdIn(
-            page.getContent().stream().map(User::getId).toList()
-        );
-
-        var items = users.stream()
-            .map(mapper::toResponse)
-            .toList();
-
-        return new PageResponse<>(
-            items,
-            page.getNumber(),
-            page.getSize(),
-            page.getTotalElements()
-        );
-    }
-
-    public UserResponseDto findById(UUID id) {
-
-        logger.debug("Fetching user. userId={}", id);
-
-        User user = findByIdWithRoles(id);
-        UserResponseDto response = mapper.toResponse(user);
-
-        logger.info("Successfully retrieved user. userId={}", id);
-
-        return response;
     }
 
     @Transactional
     public UserResponseDto create(UserCreateDto dto) {
 
-        logger.debug("Creating new user domain. data={}", dto);
+        logger.debug("Creating new user and its customer. data={}", dto);
 
         validateUniquenessByEmail(dto.email());
 
@@ -100,7 +70,13 @@ public class UserService {
 
         User savedUser = repository.save(user);
 
-        logger.info("User created successfully. userId={}", savedUser.getId());
+        CustomerCreateFromUser customerData = new CustomerCreateFromUser(
+                dto.name(), dto.cpf(), null, null
+        );
+
+        customerService.createFromUser(user.getId(), customerData);
+
+        logger.info("User and customer created successfully. userId={}", savedUser.getId());
 
         return mapper.toResponse(savedUser);
     }
@@ -217,22 +193,5 @@ public class UserService {
 
     private void setEncodedPassword(User user, String password) {
         user.setPasswordHash(passwordEncoder.encode(password));
-    }
-
-    public User getValidReference(UUID id) {
-        logger.debug("Fetching user reference. id={}", id);
-
-        validateEntity(id);
-
-        return repository.getReferenceById(id);
-    }
-
-    private void validateEntity(UUID id) {
-        if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException(
-                    UserErrors.Target.ID,
-                    UserErrors.Code.USER_NOT_FOUND
-            );
-        }
     }
 }
