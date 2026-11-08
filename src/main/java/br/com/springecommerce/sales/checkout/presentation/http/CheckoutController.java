@@ -28,7 +28,7 @@ public class CheckoutController implements CheckoutControllerDocs {
     public ResponseEntity<OrderResponseDto> checkout(
             @AuthenticationPrincipal AuthenticatedUser auth
     ) {
-        OrderResponseDto response = service.checkout(auth.getId());
+        OrderResponseDto response = service.checkout(auth.getCustomerId());
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

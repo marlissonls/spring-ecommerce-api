@@ -9,7 +9,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class AuthenticatedUser implements UserDetails {
-    private UUID id;
+    private UUID userId;
+    private UUID customerId;
+    private String name;
     private String email;
     private String passwordHash;
     private List<String> roles;
@@ -20,7 +22,7 @@ public class AuthenticatedUser implements UserDetails {
     private Boolean enabled = true;
 
     public AuthenticatedUser(
-            UUID id,
+            UUID userId,
             String email,
             String passwordHash,
             List<String> roles,
@@ -29,7 +31,7 @@ public class AuthenticatedUser implements UserDetails {
             boolean accountNonLocked,
             boolean credentialsNonExpired,
             boolean enabled) {
-        this.id = id;
+        this.userId = userId;
         this.email = email;
         this.passwordHash = passwordHash;
         this.roles = roles;
@@ -41,12 +43,18 @@ public class AuthenticatedUser implements UserDetails {
     }
 
     public AuthenticatedUser(
-            UUID id,
+            UUID userId,
+            UUID customerId,
+            String name,
             String email,
+            List<String> roles,
             Collection<? extends GrantedAuthority> authorities
     ) {
-        this.id = id;
+        this.userId = userId;
+        this.customerId = customerId;
+        this.name = name;
         this.email = email;
+        this.roles = roles;
         this.authorities = authorities;
     }
 
@@ -85,12 +93,28 @@ public class AuthenticatedUser implements UserDetails {
         return this.email;
     }
 
-    public UUID getId() {
-        return id;
+    public UUID getUserId() {
+        return userId;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public UUID getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(UUID customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {
@@ -157,11 +181,11 @@ public class AuthenticatedUser implements UserDetails {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         AuthenticatedUser that = (AuthenticatedUser) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getUserId(), that.getUserId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return Objects.hashCode(getUserId());
     }
 }

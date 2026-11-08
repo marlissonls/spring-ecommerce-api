@@ -27,7 +27,7 @@ public class CartController implements CartControllerDocs {
     public ResponseEntity<CartResponseDto> getCart(
             @AuthenticationPrincipal AuthenticatedUser auth
     ) {
-        return ResponseEntity.ok(service.getCart(auth.getId()));
+        return ResponseEntity.ok(service.getCart(auth.getCustomerId()));
     }
 
     @Override
@@ -36,7 +36,7 @@ public class CartController implements CartControllerDocs {
             @AuthenticationPrincipal AuthenticatedUser auth,
             @RequestBody @Valid CartAddProductRequestDto dto
     ) {
-        service.addProduct(auth.getId(), dto);
+        service.addProduct(auth.getCustomerId(), dto);
 
         return ResponseEntity.noContent().build();
     }
@@ -47,7 +47,7 @@ public class CartController implements CartControllerDocs {
             @AuthenticationPrincipal AuthenticatedUser auth,
             @PathVariable("productId") UUID productId
     ) {
-        service.removeProduct(auth.getId(), productId);
+        service.removeProduct(auth.getCustomerId(), productId);
 
         return ResponseEntity.noContent().build();
     }

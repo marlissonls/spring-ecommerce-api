@@ -52,17 +52,17 @@ public class JwtTokenProvider {
                 .build();
     }
 
-    public TokenDto createAccessToken(UUID userId, String email, List<String> roles) {
+    public TokenDto createAccessToken(UUID userId, UUID customerId, String name, String email, List<String> roles) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
         Date refreshValidity = new Date(now.getTime() + refreshValidityInMilliseconds);
-        String accessToken = getAccessToken(userId, email, roles, now, validity);
-        String refreshToken = getRefreshToken(userId, email, roles, now, refreshValidity);
+        String accessToken = getAccessToken(userId, customerId, name, email, roles, now, validity);
+        String refreshToken = getRefreshToken(userId, customerId, name, email, roles, now, refreshValidity);
 
         return new TokenDto(accessToken, refreshToken);
     }
 
-    private String getAccessToken(UUID userId, String email, List<String> roles, Date now, Date validity) {
+    private String getAccessToken(UUID userId, UUID customerId, String name, String email, List<String> roles, Date now, Date validity) {
 
         String issuerUrl = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
@@ -71,7 +71,9 @@ public class JwtTokenProvider {
 
         return JWT.create()
                 .withSubject(email)
-                .withClaim("id", userId.toString())
+                .withClaim("userId", userId.toString())
+                .withClaim("customerId", customerId.toString())
+                .withClaim("name", name)
                 .withClaim("roles", roles)
                 .withClaim("type", "access")
                 .withIssuedAt(now)
@@ -80,13 +82,15 @@ public class JwtTokenProvider {
                 .sign(algorithm);
     }
 
-    private String getRefreshToken(UUID userId, String email, List<String> roles, Date now, Date refreshValidity) {
+    private String getRefreshToken(UUID userId, UUID customerId, String name, String email, List<String> roles, Date now, Date refreshValidity) {
 
         String jti = UUID.randomUUID().toString();
 
         return JWT.create()
                 .withSubject(email)
-                .withClaim("id", userId.toString())
+                .withClaim("userId", userId.toString())
+                .withClaim("customerId", customerId.toString())
+                .withClaim("name", name)
                 .withClaim("roles", roles)
                 .withClaim("jti", jti)
                 .withClaim("type", "refresh")
@@ -119,7 +123,9 @@ public class JwtTokenProvider {
         try {
             DecodedJWT decodedJWT = accessTokenVerifier.verify(token);
 
-            UUID id = decodedJWT.getClaim("id").as(UUID.class);
+            UUID userId = decodedJWT.getClaim("userId").as(UUID.class);
+            UUID customerId = decodedJWT.getClaim("customerId").as(UUID.class);
+            String name = decodedJWT.getClaim("name").as(String.class);
             String email = decodedJWT.getSubject();
 
             var roles = decodedJWT.getClaim("roles").asList(String.class);
@@ -127,7 +133,7 @@ public class JwtTokenProvider {
                     .map(SimpleGrantedAuthority::new)
                     .toList();
 
-            AuthenticatedUser principal = new AuthenticatedUser(id, email, authorities);
+            AuthenticatedUser principal = new AuthenticatedUser(userId, customerId, name, email, roles, authorities);
 
             return new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
@@ -152,14 +158,16 @@ public class JwtTokenProvider {
 
             DecodedJWT decodedJWT = refreshTokenVerifier.verify(refreshToken.get());
 
-            UUID id = decodedJWT.getClaim("id").as(UUID.class);
+            UUID userId = decodedJWT.getClaim("userId").as(UUID.class);
+            UUID customerId = decodedJWT.getClaim("customerId").as(UUID.class);
+            String name = decodedJWT.getClaim("name").as(String.class);
             String email = decodedJWT.getSubject();
             var roles = decodedJWT.getClaim("roles").asList(String.class);
             var authorities = roles.stream()
                     .map(SimpleGrantedAuthority::new)
                     .toList();
 
-            return new AuthenticatedUser(id, email, authorities);
+            return new AuthenticatedUser(userId, customerId, name, email, roles, authorities);
         } catch (JWTVerificationException e) {
             throw new InvalidJwtTokenException(
                     AuthErrors.Target.REFRESH_TOKEN,
@@ -169,10 +177,12 @@ public class JwtTokenProvider {
     }
 
     public TokenDto issueTokens(
-            UUID id,
+            UUID userId,
+            UUID customerId,
+            String name,
             String email,
             List<String> roles
     ) {
-        return createAccessToken(id, email, roles);
+        return createAccessToken(userId, customerId, name, email, roles);
     }
 }

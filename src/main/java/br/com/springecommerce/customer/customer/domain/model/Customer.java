@@ -18,17 +18,16 @@ import java.util.*;
 public class Customer {
 
     @Id
-    private UUID id;
+    private UUID id = UUID.randomUUID();
 
     @OneToOne
-    @MapsId
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String cpf;
 
     @Column(name = "birth_date")
@@ -49,12 +48,6 @@ public class Customer {
     private LocalDateTime deletedAt;
 
     public Customer() {}
-
-    @PrePersist
-    protected void onCreate() {
-        if (id == null)
-            id = UUID.randomUUID();
-    }
 
     public void assignUser(User user) {
         this.user = user;
