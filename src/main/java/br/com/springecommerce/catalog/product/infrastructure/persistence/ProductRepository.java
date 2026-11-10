@@ -24,16 +24,17 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     @Query("""
         SELECT new br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot(
             p.id,
-            p.active,
+            p.title,
+            pi.url,
             p.price,
             p.salePrice,
-            s.availableQuantity
+            p.active
         )
-        FROM Stock s
-        JOIN s.product p
+        FROM Product p
+        JOIN p.images pi
         WHERE p.id = :id
-           AND p.active
-           AND s.availableQuantity > 0
+          AND p.active
+          AND pi.main
     """)
     Optional<ProductSnapshot> findAvailableProduct(@Param("id") UUID id);
 

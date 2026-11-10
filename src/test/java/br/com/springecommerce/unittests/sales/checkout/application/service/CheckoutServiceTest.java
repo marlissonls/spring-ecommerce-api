@@ -65,23 +65,26 @@ class CheckoutServiceTest {
     @Test
     void shouldCreateOrderWhenCheckoutIsValid() {
         // Given
-        UUID userId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-        String productTitle = "Test Product";
+        String productTitle = "Barraca Camping";
+        String productImage = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
         BigDecimal unitPrice = new BigDecimal("100.00");
         int quantity = 2;
         BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
 
-        Cart cart = new Cart(userId);
-        cart.addItem(productId, unitPrice, quantity);
-
-//        CartItemSnapshot item = mock(CartItemSnapshot.class);
-//        when(item.getProductId()).thenReturn(productId);
-//        when(item.getUnitPrice()).thenReturn(unitPrice);
-//        when(item.getQuantity()).thenReturn(quantity);
+        Cart cart = new Cart(customerId);
+        cart.addItem(
+                productId,
+                productTitle,
+                productImage,
+                unitPrice,
+                quantity
+        );
 
         CartItemSnapshot item = new CartItemSnapshot(
                 productId,
+                productTitle,
                 productTitle,
                 unitPrice,
                 quantity,
@@ -90,23 +93,22 @@ class CheckoutServiceTest {
 
         CartSnapshot snapshot = new CartSnapshot(cart, List.of(item));
 
-        Order order = new Order(userId, subtotal);
+        Order order = new Order(customerId, subtotal);
 
         OrderCreationData expectedOrderData = new OrderCreationData(
-                userId,
+                customerId,
                 subtotal,
                 List.of(new OrderItemData(productId, unitPrice, quantity))
         );
 
-        when(cartService.getCartSnapshot(userId))
+        when(cartService.getCartSnapshot(customerId))
                 .thenReturn(snapshot);
 
         when(orderService.create(expectedOrderData))
                 .thenReturn(order);
 
         // When
-
-        OrderResponseDto response = checkoutService.checkout(userId);
+        OrderResponseDto response = checkoutService.checkout(customerId);
 
         // Then
         assertEquals(order.getId(), response.id());
@@ -117,7 +119,7 @@ class CheckoutServiceTest {
                 response.items()
         );
 
-        verify(cartService).getCartSnapshot(userId);
+        verify(cartService).getCartSnapshot(customerId);
         verify(productService).checkProductsAreActive(
                 List.of(productId)
         );
@@ -131,67 +133,72 @@ class CheckoutServiceTest {
     @Test
     void shouldFailCheckoutWhenActiveCartIsNotFound() {
         // Given
-        UUID userId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
 
         ResourceNotFoundException exception = new ResourceNotFoundException(
                 CartErrors.Target.CART,
                 CartErrors.Code.CART_NOT_FOUND
         );
 
-        when(cartService.getCartSnapshot(userId))
+        when(cartService.getCartSnapshot(customerId))
                 .thenThrow(exception);
 
         // When / Then
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> checkoutService.checkout(userId)
+                () -> checkoutService.checkout(customerId)
         );
 
-        verify(cartService).getCartSnapshot(userId);
+        verify(cartService).getCartSnapshot(customerId);
         verifyNoInteractions(stockService, orderService);
     }
 
     @Test
     void shouldFailCheckoutWhenCartIsEmpty() {
         // Given
-        UUID userId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
 
         CartIsEmptyException exception = new CartIsEmptyException(
                 CartErrors.Target.CART,
                 CartErrors.Code.CART_IS_EMPTY
         );
 
-        when(cartService.getCartSnapshot(userId))
+        when(cartService.getCartSnapshot(customerId))
                 .thenThrow(exception);
 
         // When / Then
         assertThrows(
                 CartIsEmptyException.class,
-                () -> checkoutService.checkout(userId)
+                () -> checkoutService.checkout(customerId)
         );
 
-        verify(cartService).getCartSnapshot(userId);
+        verify(cartService).getCartSnapshot(customerId);
         verifyNoInteractions(productService, stockService, orderService);
     }
 
     @Test
     void shouldFailCheckoutWhenProductIsNotFound() {
         // Given
-        UUID userId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-        String productTitle = "Test Product";
+        String productTitle = "Barraca Camping";
+        String productImage = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
         BigDecimal unitPrice = new BigDecimal("100.00");
         int quantity = 2;
         BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
 
-        Cart cart = new Cart(userId);
-        cart.addItem(productId, unitPrice, quantity);
-
-//        CartItemSnapshot item = mock(CartItemSnapshot.class);
-//        when(item.getProductId()).thenReturn(productId);
+        Cart cart = new Cart(customerId);
+        cart.addItem(
+                productId,
+                productTitle,
+                productImage,
+                unitPrice,
+                quantity
+        );
 
         CartItemSnapshot item = new CartItemSnapshot(
                 productId,
+                productTitle,
                 productTitle,
                 unitPrice,
                 quantity,
@@ -210,7 +217,7 @@ class CheckoutServiceTest {
                 .map(CartItemSnapshot::productId)
                 .toList();
 
-        when(cartService.getCartSnapshot(userId))
+        when(cartService.getCartSnapshot(customerId))
                 .thenReturn(snapshot);
 
         doThrow(exception)
@@ -220,31 +227,36 @@ class CheckoutServiceTest {
         // When / Then
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> checkoutService.checkout(userId)
+                () -> checkoutService.checkout(customerId)
         );
 
-        verify(cartService).getCartSnapshot(userId);
+        verify(cartService).getCartSnapshot(customerId);
         verifyNoInteractions(stockService, orderService);
     }
 
     @Test
     void shouldFailCheckoutWhenProductIsUnavailable() {
         // Given
-        UUID userId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-        String productTitle = "Test Product";
+        String productTitle = "Barraca Camping";
+        String productImage = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
         BigDecimal unitPrice = new BigDecimal("100.00");
         int quantity = 2;
         BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
 
-        Cart cart = new Cart(userId);
-        cart.addItem(productId, unitPrice, quantity);
-
-//        CartItemSnapshot item = mock(CartItemSnapshot.class);
-//        when(item.productId()).thenReturn(productId);
+        Cart cart = new Cart(customerId);
+        cart.addItem(
+                productId,
+                productTitle,
+                productImage,
+                unitPrice,
+                quantity
+        );
 
         CartItemSnapshot item = new CartItemSnapshot(
                 productId,
+                productTitle,
                 productTitle,
                 unitPrice,
                 quantity,
@@ -263,7 +275,7 @@ class CheckoutServiceTest {
                 .map(CartItemSnapshot::productId)
                 .toList();
 
-        when(cartService.getCartSnapshot(userId))
+        when(cartService.getCartSnapshot(customerId))
                 .thenReturn(snapshot);
 
         doThrow(exception)
@@ -273,32 +285,36 @@ class CheckoutServiceTest {
         // When / Then
         assertThrows(
                 ProductUnavailableException.class,
-                () -> checkoutService.checkout(userId)
+                () -> checkoutService.checkout(customerId)
         );
 
-        verify(cartService).getCartSnapshot(userId);
+        verify(cartService).getCartSnapshot(customerId);
         verifyNoInteractions(orderService);
     }
 
     @Test
     void shouldFailCheckoutWhenStockIsNotFound() {
         // Given
-        UUID userId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-        String productTitle = "Test Product";
+        String productTitle = "Barraca Camping";
+        String productImage = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
         BigDecimal unitPrice = new BigDecimal("100.00");
         int quantity = 2;
         BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
 
-        Cart cart = new Cart(userId);
-        cart.addItem(productId, unitPrice, quantity);
-
-//        CartItemSnapshot item = mock(CartItemSnapshot.class);
-//        when(item.getProductId()).thenReturn(productId);
-//        when(item.getQuantity()).thenReturn(quantity);
+        Cart cart = new Cart(customerId);
+        cart.addItem(
+                productId,
+                productTitle,
+                productImage,
+                unitPrice,
+                quantity
+        );
 
         CartItemSnapshot item = new CartItemSnapshot(
                 productId,
+                productTitle,
                 productTitle,
                 unitPrice,
                 quantity,
@@ -320,7 +336,7 @@ class CheckoutServiceTest {
                 ))
                 .toList();
 
-        when(cartService.getCartSnapshot(userId))
+        when(cartService.getCartSnapshot(customerId))
                 .thenReturn(snapshot);
 
         doThrow(exception)
@@ -330,32 +346,36 @@ class CheckoutServiceTest {
         // When / Then
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> checkoutService.checkout(userId)
+                () -> checkoutService.checkout(customerId)
         );
 
-        verify(cartService).getCartSnapshot(userId);
+        verify(cartService).getCartSnapshot(customerId);
         verifyNoInteractions(orderService);
     }
 
     @Test
     void shouldFailCheckoutWhenStockIsInsufficient() {
         // Given
-        UUID userId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-        String productTitle = "Test Product";
+        String productTitle = "Barraca Camping";
+        String productImage = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
         BigDecimal unitPrice = new BigDecimal("100.00");
         int quantity = 2;
         BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
 
-        Cart cart = new Cart(userId);
-        cart.addItem(productId, unitPrice, quantity);
-
-//        CartItemSnapshot item = mock(CartItemSnapshot.class);
-//        when(item.getProductId()).thenReturn(productId);
-//        when(item.getQuantity()).thenReturn(quantity);
+        Cart cart = new Cart(customerId);
+        cart.addItem(
+                productId,
+                productTitle,
+                productImage,
+                unitPrice,
+                quantity
+        );
 
         CartItemSnapshot item = new CartItemSnapshot(
                 productId,
+                productTitle,
                 productTitle,
                 unitPrice,
                 quantity,
@@ -377,7 +397,7 @@ class CheckoutServiceTest {
                 ))
                 .toList();
 
-        when(cartService.getCartSnapshot(userId))
+        when(cartService.getCartSnapshot(customerId))
                 .thenReturn(snapshot);
 
         doThrow(exception)
@@ -387,10 +407,10 @@ class CheckoutServiceTest {
         // When / Then
         assertThrows(
                 InsufficientStockException.class,
-                () -> checkoutService.checkout(userId)
+                () -> checkoutService.checkout(customerId)
         );
 
-        verify(cartService).getCartSnapshot(userId);
+        verify(cartService).getCartSnapshot(customerId);
         verifyNoInteractions(orderService);
     }
 }

@@ -45,11 +45,19 @@ public class CartTests {
     void shouldAddProductAndCalculateSubtotal() {
         // Given
         UUID productId = UUID.randomUUID();
+        String productTitle = "Barraca Camping";
+        String productImage = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
         BigDecimal unitPrice = new BigDecimal("100.00");
         int quantity = 2;
 
         // When
-        cart.addItem(productId, unitPrice, quantity);
+        cart.addItem(
+                productId,
+                productTitle,
+                productImage,
+                unitPrice,
+                quantity
+        );
 
         // Then
         assertEquals(1, cart.getItems().size());
@@ -69,19 +77,40 @@ public class CartTests {
     void shouldAddMultipleProductsAndCalculateSubtotal() {
         // Given
         UUID firstProductId = UUID.randomUUID();
-        UUID secondProductId = UUID.randomUUID();
+        String firstProductTitle = "Barraca Camping";
+        String firstProductImage = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
+        BigDecimal firstProductUnitPrice = new BigDecimal("100.00");
+        int firstProductQuantity = 2;
 
-        BigDecimal firstUnitPrice = new BigDecimal("100.00");
-        BigDecimal secondUnitPrice = new BigDecimal("50.00");
+        UUID secondProductId = UUID.randomUUID();
+        String secondProductTitle = "Bota Trekking";
+        String secondProductImage = "products/bota-trekking/ciyya0m68tobdemmgmkw";
+        BigDecimal secondProductUnitPrice = new BigDecimal("50.00");
+        int secondProductQuantity = 3;
+
+        BigDecimal total = firstProductUnitPrice.multiply(BigDecimal.valueOf(firstProductQuantity))
+                .add(secondProductUnitPrice.multiply(BigDecimal.valueOf(secondProductQuantity)));
 
         // When
-        cart.addItem(firstProductId, firstUnitPrice, 2);
-        cart.addItem(secondProductId, secondUnitPrice, 3);
+        cart.addItem(
+                firstProductId,
+                firstProductTitle,
+                firstProductImage,
+                firstProductUnitPrice,
+                firstProductQuantity
+        );
+        cart.addItem(
+                secondProductId,
+                secondProductTitle,
+                secondProductImage,
+                secondProductUnitPrice,
+                secondProductQuantity
+        );
 
         // Then
         assertEquals(2, cart.getItems().size());
         assertEquals(
-                new BigDecimal("350.00"),
+                total,
                 cart.getSubtotalAmount()
         );
     }
@@ -90,14 +119,27 @@ public class CartTests {
     void shouldUpdateExistingProductQuantityAndPrice() {
         // Given
         UUID productId = UUID.randomUUID();
-
+        String productTitle = "Barraca Camping";
+        String productImage = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
         BigDecimal oldUnitPrice = new BigDecimal("100.00");
         BigDecimal newUnitPrice = new BigDecimal("80.00");
 
-        cart.addItem(productId, oldUnitPrice, 2);
+        cart.addItem(
+                productId,
+                productTitle,
+                productImage,
+                oldUnitPrice,
+                2
+        );
 
         // When
-        cart.addItem(productId, newUnitPrice, 3);
+        cart.addItem(
+                productId,
+                productTitle,
+                productImage,
+                newUnitPrice,
+                3
+        );
 
         // Then
         assertEquals(1, cart.getItems().size());
@@ -114,10 +156,35 @@ public class CartTests {
     void shouldRemoveProductAndRecalculateSubtotal() {
         // Given
         UUID firstProductId = UUID.randomUUID();
-        UUID secondProductId = UUID.randomUUID();
+        String firstProductTitle = "Barraca Camping";
+        String firstProductImage = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
+        BigDecimal firstProductUnitPrice = new BigDecimal("100.00");
+        int firstProductQuantity = 2;
 
-        cart.addItem(firstProductId, new BigDecimal("100.00"), 2);
-        cart.addItem(secondProductId, new BigDecimal("50.00"), 3);
+        UUID secondProductId = UUID.randomUUID();
+        String secondProductTitle = "Bota Trekking";
+        String secondProductImage = "products/bota-trekking/ciyya0m68tobdemmgmkw";
+        BigDecimal secondProductUnitPrice = new BigDecimal("50.00");
+        int secondProductQuantity = 3;
+
+        cart.addItem(
+                firstProductId,
+                firstProductTitle,
+                firstProductImage,
+                firstProductUnitPrice,
+                firstProductQuantity
+        );
+
+        cart.addItem(
+                secondProductId,
+                secondProductTitle,
+                secondProductImage,
+                secondProductUnitPrice,
+                secondProductQuantity
+        );
+
+        BigDecimal remainingProductTotal
+                = secondProductUnitPrice.multiply(BigDecimal.valueOf(secondProductQuantity));
 
         // When
         cart.removeItem(firstProductId);
@@ -128,7 +195,7 @@ public class CartTests {
                 secondProductId,
                 cart.getItems().iterator().next().getProductId()
         );
-        assertEquals(new BigDecimal("150.00"), cart.getSubtotalAmount());
+        assertEquals(remainingProductTotal, cart.getSubtotalAmount());
     }
 
     @Test
@@ -147,8 +214,17 @@ public class CartTests {
     void shouldRemoveLastProductAndResetSubtotal() {
         // Given
         UUID productId = UUID.randomUUID();
+        String productTitle = "Barraca Camping";
+        String productImage = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
+        BigDecimal productPrice = new BigDecimal("100.00");
 
-        cart.addItem(productId, new BigDecimal("100.00"), 2);
+        cart.addItem(
+                productId,
+                productTitle,
+                productImage,
+                productPrice,
+                2
+        );
 
         // When
         cart.removeItem(productId);

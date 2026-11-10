@@ -65,6 +65,8 @@ public class Cart {
 
     public void addItem(
             UUID productId,
+            String productTitle,
+            String productImage,
             BigDecimal unitPrice,
             Integer quantity
     ) {
@@ -80,6 +82,8 @@ public class Cart {
         } else {
             items.add(new CartItem(
                     productId,
+                    productTitle,
+                    productImage,
                     unitPrice,
                     quantity
             ));

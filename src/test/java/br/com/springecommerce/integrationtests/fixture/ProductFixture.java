@@ -2,11 +2,13 @@ package br.com.springecommerce.integrationtests.fixture;
 
 import br.com.springecommerce.catalog.brand.domain.model.Brand;
 import br.com.springecommerce.catalog.category.domain.model.Category;
+import br.com.springecommerce.catalog.product.application.dto.ProductImageCreateDto;
 import br.com.springecommerce.catalog.product.domain.model.Product;
 import br.com.springecommerce.catalog.product.infrastructure.persistence.ProductRepository;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Component
 public class ProductFixture {
@@ -23,6 +25,11 @@ public class ProductFixture {
     private String sku = "SKU-001";
     private Category category;
     private Brand brand;
+
+    private String publicId = "products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw";
+    private String url = "https://res.cloudinary.com/sjag7gwa/image/upload/v1794235299/products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw.webp";
+    private Integer position = 0;
+    private Boolean main = true;
 
     public ProductFixture(ProductRepository repository) {
         this.repository = repository;
@@ -78,6 +85,26 @@ public class ProductFixture {
         return this;
     }
 
+    public ProductFixture withImagePublicId(String publicId) {
+        this.publicId = publicId;
+        return this;
+    }
+
+    public ProductFixture withImageUrl(String url) {
+        this.url = url;
+        return this;
+    }
+
+    public ProductFixture withImagePosition(Integer position) {
+        this.position = position;
+        return this;
+    }
+
+    public ProductFixture withImageMain(Boolean main) {
+        this.main = main;
+        return this;
+    }
+
     public Product create() {
         Product product = new Product(
                 title,
@@ -91,6 +118,15 @@ public class ProductFixture {
                 category,
                 brand
         );
+
+        var imageDto = new ProductImageCreateDto(
+                publicId,
+                url,
+                position,
+                main
+        );
+
+        product.addImages(List.of(imageDto));
 
         return repository.save(product);
     }

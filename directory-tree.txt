@@ -1,0 +1,494 @@
+Listagem de caminhos de pasta
+O n�mero de s�rie do volume � CC37-2BB2
+E:.
++---.github
+|   \---workflows
++---.idea
+|   \---inspectionProfiles
++---.mvn
+|   \---wrapper
++---.vscode
++---docs
++---src
+|   +---main
+|   |   +---java
+|   |   |   \---br
+|   |   |       \---com
+|   |   |           \---springecommerce
+|   |   |               +---catalog
+|   |   |               |   +---brand
+|   |   |               |   |   +---application
+|   |   |               |   |   |   +---dto
+|   |   |               |   |   |   +---mapper
+|   |   |               |   |   |   \---service
+|   |   |               |   |   +---domain
+|   |   |               |   |   |   +---exception
+|   |   |               |   |   |   \---model
+|   |   |               |   |   +---infrastructure
+|   |   |               |   |   |   \---persistence
+|   |   |               |   |   \---presentation
+|   |   |               |   |       +---docs
+|   |   |               |   |       \---http
+|   |   |               |   +---category
+|   |   |               |   |   +---application
+|   |   |               |   |   |   +---dto
+|   |   |               |   |   |   +---mapper
+|   |   |               |   |   |   \---service
+|   |   |               |   |   +---domain
+|   |   |               |   |   |   +---exception
+|   |   |               |   |   |   \---model
+|   |   |               |   |   +---infrastructure
+|   |   |               |   |   |   \---persistence
+|   |   |               |   |   \---presentation
+|   |   |               |   |       +---docs
+|   |   |               |   |       \---http
+|   |   |               |   \---product
+|   |   |               |       +---application
+|   |   |               |       |   +---dto
+|   |   |               |       |   +---mapper
+|   |   |               |       |   +---service
+|   |   |               |       |   \---snapshot
+|   |   |               |       +---domain
+|   |   |               |       |   +---exception
+|   |   |               |       |   \---model
+|   |   |               |       +---infrastructure
+|   |   |               |       |   +---persistence
+|   |   |               |       |   \---specification
+|   |   |               |       \---presentation
+|   |   |               |           +---docs
+|   |   |               |           +---filter
+|   |   |               |           \---http
+|   |   |               +---config
+|   |   |               |   +---openapi
+|   |   |               |   \---security
+|   |   |               |       +---authentication
+|   |   |               |       +---config
+|   |   |               |       +---jwt
+|   |   |               |       |   \---exception
+|   |   |               |       \---web
+|   |   |               +---customer
+|   |   |               |   +---customer
+|   |   |               |   |   +---application
+|   |   |               |   |   |   +---dto
+|   |   |               |   |   |   +---mapper
+|   |   |               |   |   |   \---service
+|   |   |               |   |   +---domain
+|   |   |               |   |   |   +---exception
+|   |   |               |   |   |   \---model
+|   |   |               |   |   +---infrastructure
+|   |   |               |   |   |   \---persistence
+|   |   |               |   |   \---presentation
+|   |   |               |   |       +---docs
+|   |   |               |   |       \---http
+|   |   |               |   +---favorite
+|   |   |               |   |   +---controller
+|   |   |               |   |   +---docs
+|   |   |               |   |   +---dto
+|   |   |               |   |   +---entity
+|   |   |               |   |   +---exception
+|   |   |               |   |   +---mapper
+|   |   |               |   |   +---repository
+|   |   |               |   |   \---service
+|   |   |               |   \---review
+|   |   |               |       +---controller
+|   |   |               |       +---docs
+|   |   |               |       +---dto
+|   |   |               |       +---entity
+|   |   |               |       +---exception
+|   |   |               |       +---mapper
+|   |   |               |       +---repository
+|   |   |               |       \---service
+|   |   |               +---iam
+|   |   |               |   +---authentication
+|   |   |               |   |   +---application
+|   |   |               |   |   |   +---dto
+|   |   |               |   |   |   +---mapper
+|   |   |               |   |   |   \---service
+|   |   |               |   |   +---domain
+|   |   |               |   |   |   \---exception
+|   |   |               |   |   \---presentation
+|   |   |               |   |       +---docs
+|   |   |               |   |       \---http
+|   |   |               |   +---role
+|   |   |               |   |   +---application
+|   |   |               |   |   |   +---dto
+|   |   |               |   |   |   +---mapper
+|   |   |               |   |   |   \---service
+|   |   |               |   |   +---domain
+|   |   |               |   |   |   +---code
+|   |   |               |   |   |   +---exception
+|   |   |               |   |   |   \---model
+|   |   |               |   |   +---infrastructure
+|   |   |               |   |   |   \---persistence
+|   |   |               |   |   \---presentation
+|   |   |               |   |       +---docs
+|   |   |               |   |       \---http
+|   |   |               |   +---security
+|   |   |               |   |   +---authentication
+|   |   |               |   |   \---principal
+|   |   |               |   \---user
+|   |   |               |       +---application
+|   |   |               |       |   +---dto
+|   |   |               |       |   +---mapper
+|   |   |               |       |   \---service
+|   |   |               |       +---domain
+|   |   |               |       |   +---exception
+|   |   |               |       |   +---model
+|   |   |               |       |   \---valueobject
+|   |   |               |       +---infrastructure
+|   |   |               |       |   \---persistence
+|   |   |               |       \---presentation
+|   |   |               |           +---docs
+|   |   |               |           \---http
+|   |   |               +---inventory
+|   |   |               |   \---stock
+|   |   |               |       +---application
+|   |   |               |       |   +---dto
+|   |   |               |       |   +---mapper
+|   |   |               |       |   +---movement
+|   |   |               |       |   \---service
+|   |   |               |       +---domain
+|   |   |               |       |   +---exception
+|   |   |               |       |   \---model
+|   |   |               |       +---infrastructure
+|   |   |               |       |   +---persistence
+|   |   |               |       |   \---specification
+|   |   |               |       \---presentation
+|   |   |               |           +---docs
+|   |   |               |           +---filter
+|   |   |               |           \---http
+|   |   |               +---observability
+|   |   |               |   +---logging
+|   |   |               |   +---metrics
+|   |   |               |   \---tracing
+|   |   |               +---otherdomains
+|   |   |               |   +---adress
+|   |   |               |   |   \---address
+|   |   |               |   |       +---controller
+|   |   |               |   |       +---docs
+|   |   |               |   |       +---dto
+|   |   |               |   |       +---entity
+|   |   |               |   |       +---exception
+|   |   |               |   |       +---mapper
+|   |   |               |   |       +---repository
+|   |   |               |   |       \---service
+|   |   |               |   +---alayeredstructurefolders
+|   |   |               |   |   +---controller
+|   |   |               |   |   +---docs
+|   |   |               |   |   +---dto
+|   |   |               |   |   +---entity
+|   |   |               |   |   +---exception
+|   |   |               |   |   +---mapper
+|   |   |               |   |   +---repository
+|   |   |               |   |   \---service
+|   |   |               |   \---images
+|   |   |               |       +---controller
+|   |   |               |       +---docs
+|   |   |               |       +---dto
+|   |   |               |       +---entity
+|   |   |               |       +---exception
+|   |   |               |       +---mapper
+|   |   |               |       +---repository
+|   |   |               |       \---service
+|   |   |               +---sales
+|   |   |               |   +---cart
+|   |   |               |   |   +---application
+|   |   |               |   |   |   +---dto
+|   |   |               |   |   |   +---mapper
+|   |   |               |   |   |   +---service
+|   |   |               |   |   |   \---snapshot
+|   |   |               |   |   +---domain
+|   |   |               |   |   |   +---exception
+|   |   |               |   |   |   +---model
+|   |   |               |   |   |   +---status
+|   |   |               |   |   |   \---valueobject
+|   |   |               |   |   +---infrastructure
+|   |   |               |   |   |   \---persistence
+|   |   |               |   |   |       +---projection
+|   |   |               |   |   |       \---repository
+|   |   |               |   |   \---presentation
+|   |   |               |   |       +---docs
+|   |   |               |   |       \---http
+|   |   |               |   +---checkout
+|   |   |               |   |   +---application
+|   |   |               |   |   |   +---mapper
+|   |   |               |   |   |   \---service
+|   |   |               |   |   \---presentation
+|   |   |               |   |       +---docs
+|   |   |               |   |       \---http
+|   |   |               |   \---order
+|   |   |               |       +---application
+|   |   |               |       |   +---contract
+|   |   |               |       |   +---dto
+|   |   |               |       |   +---mapper
+|   |   |               |       |   +---service
+|   |   |               |       |   \---snapshot
+|   |   |               |       +---domain
+|   |   |               |       |   +---exception
+|   |   |               |       |   +---model
+|   |   |               |       |   +---status
+|   |   |               |       |   \---valueobject
+|   |   |               |       +---infrastructure
+|   |   |               |       |   \---persistence
+|   |   |               |       |       +---projection
+|   |   |               |       |       \---repository
+|   |   |               |       \---presentation
+|   |   |               |           +---docs
+|   |   |               |           \---http
+|   |   |               \---shared
+|   |   |                   +---exception
+|   |   |                   |   +---base
+|   |   |                   |   +---code
+|   |   |                   |   +---errors
+|   |   |                   |   +---handler
+|   |   |                   |   +---order
+|   |   |                   |   \---response
+|   |   |                   +---pagination
+|   |   |                   \---utils
+|   |   \---resources
+|   |       \---db
+|   |           \---migration
+|   \---test
+|       +---java
+|       |   \---br
+|       |       \---com
+|       |           \---springecommerce
+|       |               +---integrationtests
+|       |               |   +---config
+|       |               |   +---fixture
+|       |               |   +---infrastructure
+|       |               |   +---support
+|       |               |   \---tests
+|       |               |       +---cors
+|       |               |       \---sales
+|       |               |           +---cart
+|       |               |           \---checkout
+|       |               \---unittests
+|       |                   \---sales
+|       |                       +---cart
+|       |                       |   +---application
+|       |                       |   |   \---service
+|       |                       |   \---domain
+|       |                       |       \---model
+|       |                       \---checkout
+|       |                           \---application
+|       |                               \---service
+|       \---resources
+\---target
+    +---classes
+    |   +---br
+    |   |   \---com
+    |   |       \---springecommerce
+    |   |           +---catalog
+    |   |           |   +---brand
+    |   |           |   |   +---application
+    |   |           |   |   |   +---dto
+    |   |           |   |   |   \---service
+    |   |           |   |   +---domain
+    |   |           |   |   |   +---exception
+    |   |           |   |   |   \---model
+    |   |           |   |   +---infrastructure
+    |   |           |   |   |   \---persistence
+    |   |           |   |   \---presentation
+    |   |           |   |       +---docs
+    |   |           |   |       \---http
+    |   |           |   +---category
+    |   |           |   |   +---application
+    |   |           |   |   |   +---dto
+    |   |           |   |   |   \---service
+    |   |           |   |   +---domain
+    |   |           |   |   |   +---exception
+    |   |           |   |   |   \---model
+    |   |           |   |   +---infrastructure
+    |   |           |   |   |   \---persistence
+    |   |           |   |   \---presentation
+    |   |           |   |       +---docs
+    |   |           |   |       \---http
+    |   |           |   \---product
+    |   |           |       +---application
+    |   |           |       |   +---dto
+    |   |           |       |   +---service
+    |   |           |       |   \---snapshot
+    |   |           |       +---domain
+    |   |           |       |   +---exception
+    |   |           |       |   \---model
+    |   |           |       +---infrastructure
+    |   |           |       |   +---persistence
+    |   |           |       |   \---specification
+    |   |           |       \---presentation
+    |   |           |           +---docs
+    |   |           |           +---filter
+    |   |           |           \---http
+    |   |           +---config
+    |   |           |   +---openapi
+    |   |           |   \---security
+    |   |           |       +---authentication
+    |   |           |       +---config
+    |   |           |       +---jwt
+    |   |           |       |   \---exception
+    |   |           |       \---web
+    |   |           +---customer
+    |   |           |   \---customer
+    |   |           |       +---application
+    |   |           |       |   +---dto
+    |   |           |       |   +---mapper
+    |   |           |       |   \---service
+    |   |           |       +---domain
+    |   |           |       |   +---exception
+    |   |           |       |   \---model
+    |   |           |       +---infrastructure
+    |   |           |       |   \---persistence
+    |   |           |       \---presentation
+    |   |           |           +---docs
+    |   |           |           \---http
+    |   |           +---iam
+    |   |           |   +---authentication
+    |   |           |   |   +---application
+    |   |           |   |   |   +---dto
+    |   |           |   |   |   \---service
+    |   |           |   |   +---domain
+    |   |           |   |   |   \---exception
+    |   |           |   |   \---presentation
+    |   |           |   |       +---docs
+    |   |           |   |       \---http
+    |   |           |   +---role
+    |   |           |   |   +---application
+    |   |           |   |   |   +---dto
+    |   |           |   |   |   \---service
+    |   |           |   |   +---domain
+    |   |           |   |   |   +---code
+    |   |           |   |   |   +---exception
+    |   |           |   |   |   \---model
+    |   |           |   |   +---infrastructure
+    |   |           |   |   |   \---persistence
+    |   |           |   |   \---presentation
+    |   |           |   |       +---docs
+    |   |           |   |       \---http
+    |   |           |   +---security
+    |   |           |   |   +---authentication
+    |   |           |   |   \---principal
+    |   |           |   \---user
+    |   |           |       +---application
+    |   |           |       |   +---dto
+    |   |           |       |   +---mapper
+    |   |           |       |   \---service
+    |   |           |       +---domain
+    |   |           |       |   +---exception
+    |   |           |       |   +---model
+    |   |           |       |   \---valueobject
+    |   |           |       +---infrastructure
+    |   |           |       |   \---persistence
+    |   |           |       \---presentation
+    |   |           |           +---docs
+    |   |           |           \---http
+    |   |           +---inventory
+    |   |           |   \---stock
+    |   |           |       +---application
+    |   |           |       |   +---dto
+    |   |           |       |   +---movement
+    |   |           |       |   \---service
+    |   |           |       +---domain
+    |   |           |       |   +---exception
+    |   |           |       |   \---model
+    |   |           |       +---infrastructure
+    |   |           |       |   +---persistence
+    |   |           |       |   \---specification
+    |   |           |       \---presentation
+    |   |           |           +---docs
+    |   |           |           +---filter
+    |   |           |           \---http
+    |   |           +---observability
+    |   |           |   \---logging
+    |   |           +---sales
+    |   |           |   +---cart
+    |   |           |   |   +---application
+    |   |           |   |   |   +---dto
+    |   |           |   |   |   +---service
+    |   |           |   |   |   \---snapshot
+    |   |           |   |   +---domain
+    |   |           |   |   |   +---exception
+    |   |           |   |   |   +---model
+    |   |           |   |   |   +---status
+    |   |           |   |   |   \---valueobject
+    |   |           |   |   +---infrastructure
+    |   |           |   |   |   \---persistence
+    |   |           |   |   |       +---projection
+    |   |           |   |   |       \---repository
+    |   |           |   |   \---presentation
+    |   |           |   |       +---docs
+    |   |           |   |       \---http
+    |   |           |   +---checkout
+    |   |           |   |   +---application
+    |   |           |   |   |   \---service
+    |   |           |   |   \---presentation
+    |   |           |   |       +---docs
+    |   |           |   |       \---http
+    |   |           |   \---order
+    |   |           |       +---application
+    |   |           |       |   +---contract
+    |   |           |       |   +---dto
+    |   |           |       |   +---service
+    |   |           |       |   \---snapshot
+    |   |           |       +---domain
+    |   |           |       |   +---exception
+    |   |           |       |   +---model
+    |   |           |       |   +---status
+    |   |           |       |   \---valueobject
+    |   |           |       +---infrastructure
+    |   |           |       |   \---persistence
+    |   |           |       |       +---projection
+    |   |           |       |       \---repository
+    |   |           |       \---presentation
+    |   |           |           +---docs
+    |   |           |           \---http
+    |   |           \---shared
+    |   |               +---exception
+    |   |               |   +---base
+    |   |               |   +---code
+    |   |               |   +---errors
+    |   |               |   +---handler
+    |   |               |   +---order
+    |   |               |   \---response
+    |   |               +---pagination
+    |   |               \---utils
+    |   \---db
+    |       \---migration
+    +---generated-sources
+    |   \---annotations
+    |       \---br
+    |           \---com
+    |               \---springecommerce
+    |                   +---customer
+    |                   |   \---customer
+    |                   |       \---application
+    |                   |           \---mapper
+    |                   \---iam
+    |                       \---user
+    |                           \---application
+    |                               \---mapper
+    +---generated-test-sources
+    |   \---test-annotations
+    \---test-classes
+        \---br
+            \---com
+                \---springecommerce
+                    +---integrationtests
+                    |   +---config
+                    |   +---fixture
+                    |   +---infrastructure
+                    |   +---support
+                    |   \---tests
+                    |       +---cors
+                    |       \---sales
+                    |           +---cart
+                    |           \---checkout
+                    \---unittests
+                        \---sales
+                            +---cart
+                            |   +---application
+                            |   |   \---service
+                            |   \---domain
+                            |       \---model
+                            \---checkout
+                                \---application
+                                    \---service

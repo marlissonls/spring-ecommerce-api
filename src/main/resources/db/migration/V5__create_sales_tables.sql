@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS cart_items (
     cart_id CHAR(36) NOT NULL,
     product_id CHAR(36) NOT NULL,
 
+    product_title VARCHAR(100) NOT NULL,
+    product_image VARCHAR(255) NOT NULL,
     unit_price DECIMAL(10, 2) NOT NULL DEFAULT 0,
     quantity INTEGER NOT NULL DEFAULT 0,
 
@@ -41,7 +43,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
     CONSTRAINT fk_cart_item_cart FOREIGN KEY (cart_id) REFERENCES carts (id),
     CONSTRAINT fk_cart_item_product FOREIGN KEY (product_id) REFERENCES products (id),
     CONSTRAINT uk_cart_product UNIQUE (cart_id, product_id)
-) ENGINE=InnoDB;
+    ) ENGINE=InnoDB;
 
 --
 CREATE TABLE IF NOT EXISTS orders (
@@ -83,6 +85,8 @@ CREATE TABLE IF NOT EXISTS order_items (
     order_id CHAR(36) NOT NULL,
     product_id CHAR(36) NOT NULL,
 
+    product_title VARCHAR(100) NOT NULL,
+    product_image VARCHAR(100) NOT NULL,
     unit_price DECIMAL(10, 2) NOT NULL DEFAULT 0,
     quantity INTEGER NOT NULL DEFAULT 0,
 

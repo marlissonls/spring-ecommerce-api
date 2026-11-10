@@ -332,10 +332,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .findByCustomerIdAndStatus(customer.getId(), CartStatus.ACTIVE)
                 .orElseThrow();
 
-        List<CartItemSnapshot> items = cartRepository.findCartItems(createdCart.getId())
-                .stream()
-                .map(CartItemSnapshot::new)
-                .toList();
+        List<CartItemSnapshot> items = cartRepository.findCartItems(createdCart.getId());
 
         assertThat(createdCart.getCustomerId())
                 .isEqualTo(customer.getId());
@@ -423,10 +420,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .findById(cart.getId())
                 .orElseThrow();
 
-        List<CartItemSnapshot> items = cartRepository.findCartItems(updatedCart.getId())
-                .stream()
-                .map(CartItemSnapshot::new)
-                .toList();
+        List<CartItemSnapshot> items = cartRepository.findCartItems(updatedCart.getId());
 
         assertThat(updatedCart.getId())
                 .isEqualTo(cart.getId());
@@ -523,10 +517,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .findById(cart.getId())
                 .orElseThrow();
 
-        List<CartItemSnapshot> items = cartRepository.findCartItems(updatedCart.getId())
-                .stream()
-                .map(CartItemSnapshot::new)
-                .toList();
+        List<CartItemSnapshot> items = cartRepository.findCartItems(updatedCart.getId());
 
         assertThat(items)
                 .hasSize(1);
@@ -694,6 +685,8 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+
+
 
         Cart cart = cartFixture.create(customer);
         cartFixture.addProduct(cart, product, cartItemQuantity);

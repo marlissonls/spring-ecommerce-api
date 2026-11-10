@@ -42,6 +42,8 @@ public class CartFixture {
 
         managedCart.addItem(
                 product.getId(),
+                product.getTitle(),
+                product.getImages().iterator().next().getUrl(),
                 unitPrice,
                 quantity
         );

@@ -15,6 +15,12 @@ public class CartItem {
     @Column(name = "product_id", nullable = false)
     private UUID productId;
 
+    @Column(name = "product_title", nullable = false)
+    private String productTitle;
+
+    @Column(name = "product_image", nullable = false)
+    private String productImage;
+
     @Positive(message = CartErrors.Code.CART_ITEM_UNIT_PRICE_INVALID)
     @Column(name = "unit_price", nullable = false)
     private BigDecimal unitPrice;
@@ -23,16 +29,23 @@ public class CartItem {
     @Column(nullable = false)
     private Integer quantity;
 
+
+
     protected CartItem() {}
 
     public CartItem(
             UUID productId,
+            String productTitle,
+            String productImage,
             BigDecimal unitPrice,
             Integer quantity
     ) {
         this.productId = productId;
+        this.productTitle = productTitle;
+        this.productImage = productImage;
         this.unitPrice = unitPrice;
         this.quantity = quantity;
+
     }
 
     public BigDecimal getTotalPrice() {
@@ -46,12 +59,8 @@ public class CartItem {
         return productId;
     }
 
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
+    public String getProductTitle() {
+        return productTitle;
     }
 
     public BigDecimal getUnitPrice() {
@@ -60,6 +69,22 @@ public class CartItem {
 
     public void setUnitPrice(BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public String getProductImage() {
+        return productImage;
+    }
+
+    public void setProductImage(String image) {
+        this.productImage = image;
     }
 
     @Override

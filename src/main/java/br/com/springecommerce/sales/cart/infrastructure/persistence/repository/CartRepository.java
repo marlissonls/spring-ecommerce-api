@@ -1,8 +1,8 @@
 package br.com.springecommerce.sales.cart.infrastructure.persistence.repository;
 
+import br.com.springecommerce.sales.cart.application.snapshot.CartItemSnapshot;
 import br.com.springecommerce.sales.cart.domain.model.Cart;
 import br.com.springecommerce.sales.cart.domain.status.CartStatus;
-import br.com.springecommerce.sales.cart.infrastructure.persistence.projection.CartItemProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,17 +24,18 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
             @Param("status") CartStatus status
     );
 
-    @Query(value = """
-        SELECT
-            ci.product_id AS productId,
-            p.title AS productTitle,
-            ci.unit_price AS unitPrice,
-            ci.quantity AS quantity,
-            ci.unit_price * ci.quantity AS totalPrice
-        FROM cart_items ci
-        JOIN products p
-            ON p.id = ci.product_id
-        WHERE ci.cart_id = :cartId
-    """, nativeQuery = true)
-    List<CartItemProjection> findCartItems(@Param("cartId") UUID cartId);
+    @Query("""
+    SELECT new br.com.springecommerce.sales.cart.application.snapshot.CartItemSnapshot(
+        ci.productId,
+        ci.productTitle,
+        ci.productImage,
+        ci.unitPrice,
+        ci.quantity,
+        ci.unitPrice * ci.quantity
+    )
+    FROM Cart c
+    JOIN c.items ci
+    WHERE c.id = :cartId
+    """)
+    List<CartItemSnapshot> findCartItems(@Param("cartId") UUID cartId);
 }

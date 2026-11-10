@@ -1,0 +1,877 @@
+Sim. Eu faria o código novo **sem mexer nos `Specifications` existentes**. Eles continuam funcionando como fallback/JPA. Para o Elastic, criamos uma implementação paralela.
+
+ Vou montar a primeira versão em Spring Boot usando o cliente oficial do Elasticsearch.
+
+ ### 1\. Dependência
+
+ Se você já usa Spring Boot, a opção mais integrada é o Spring Data Elasticsearch:
+
+```
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+</dependency>
+```
+
+ ### 2\. Documento do Elasticsearch
+
+ Eu criaria um documento específico para busca:
+
+```
+@Document(indexName = "products")
+public class ProductDocument {
+
+    @Id
+    private UUID id;
+
+    @Field(type = FieldType.Text)
+    private String title;
+
+    @Field(type = FieldType.Text)
+    private String description;
+
+    @Field(type = FieldType.Keyword)
+    private String slug;
+
+    @Field(type = FieldType.Keyword)
+    private String sku;
+
+    @Field(type = FieldType.Keyword)
+    private String barcode;
+
+    @Field(type = FieldType.Keyword)
+    private UUID categoryId;
+
+    @Field(type = FieldType.Text)
+    private String categoryTitle;
+
+    @Field(type = FieldType.Keyword)
+    private UUID brandId;
+
+    @Field(type = FieldType.Text)
+    private String brandTitle;
+
+    @Field(type = FieldType.Double)
+    private BigDecimal price;
+
+    @Field(type = FieldType.Double)
+    private BigDecimal salePrice;
+
+    @Field(type = FieldType.Double)
+    private BigDecimal costPrice;
+
+    @Field(type = FieldType.Double)
+    private BigDecimal rating;
+
+    @Field(type = FieldType.Integer)
+    private Integer ratingCount;
+
+    @Field(type = FieldType.Boolean)
+    private Boolean active;
+
+    @Field(type = FieldType.Boolean)
+    private Boolean featured;
+
+    @Field(type = FieldType.Boolean)
+    private Boolean onSale;
+
+    @Field(type = FieldType.Boolean)
+    private Boolean hasAvailableStock;
+
+    @Field(type = FieldType.Boolean)
+    private Boolean availableForSale;
+
+    @Field(type = FieldType.Date)
+    private LocalDateTime createdAt;
+
+    @Field(type = FieldType.Date)
+    private LocalDateTime updatedAt;
+}
+```
+
+ Aqui tem uma diferença importante em relação à sua entidade `Product`: **esse documento é feito para busca**, não para representar necessariamente a entidade JPA.
+
+---
+
+ ### 3\. Repository do Elasticsearch
+
+```
+public interface ProductSearchRepository
+        extends ElasticsearchRepository<ProductDocument, UUID> {
+}
+```
+
+ Mas eu não usaria os métodos derivados desse repository para sua busca complexa. Vamos criar um componente específico para construir as queries.
+
+```
+@Repository
+public class ProductSearchQueryRepository {
+
+    private final ElasticsearchOperations operations;
+
+    public ProductSearchQueryRepository(
+            ElasticsearchOperations operations
+    ) {
+        this.operations = operations;
+    }
+
+    public SearchPage<ProductDocument> search(
+            ProductPublicFilter filter,
+            Pageable pageable
+    ) {
+        Query query = buildPublicQuery(filter, pageable);
+
+        return SearchHitSupport.searchPageFor(
+                operations.search(query, ProductDocument.class),
+                pageable
+        );
+    }
+}
+```
+
+ A parte interessante é o `buildPublicQuery`.
+
+---
+
+ ### 4\. Construindo a busca pública
+
+ A ideia é separar:
+
+ - `must` → texto que influencia relevância;
+- `filter` → filtros que simplesmente restringem resultados.
+
+```
+private Query buildPublicQuery(
+        ProductPublicFilter filter,
+        Pageable pageable
+) {
+    BoolQuery.Builder bool = new BoolQuery.Builder();
+
+    if (filter.search() != null && !filter.search().isBlank()) {
+
+        bool.must(m -> m.multiMatch(mm -> mm
+                .query(filter.search().trim())
+                .fields(
+                        "title^4",
+                        "brandTitle^3",
+                        "categoryTitle^2",
+                        "description",
+                        "sku^5",
+                        "slug"
+                )
+        ));
+    }
+
+    if (filter.category() != null) {
+        bool.filter(f -> f.term(t -> t
+                .field("categoryId")
+                .value(filter.category().toString())
+        ));
+    }
+
+    if (filter.brand() != null) {
+        bool.filter(f -> f.term(t -> t
+                .field("brandId")
+                .value(filter.brand().toString())
+        ));
+    }
+
+    if (filter.onSale() != null) {
+        bool.filter(f -> f.term(t -> t
+                .field("onSale")
+                .value(filter.onSale())
+        ));
+    }
+
+    if (filter.featured() != null) {
+        bool.filter(f -> f.term(t -> t
+                .field("featured")
+                .value(filter.featured())
+        ));
+    }
+
+    if (filter.minPrice() != null) {
+        bool.filter(f -> f.range(r -> r
+                .field("price")
+                .gte(JsonData.of(filter.minPrice()))
+        ));
+    }
+
+    if (filter.maxPrice() != null) {
+        bool.filter(f -> f.range(r -> r
+                .field("price")
+                .lte(JsonData.of(filter.maxPrice()))
+        ));
+    }
+
+    bool.filter(f -> f.term(t -> t
+            .field("availableForSale")
+            .value(true)
+    ));
+
+    Query query = NativeQuery.builder()
+            .withQuery(q -> q.bool(bool.build()))
+            .withPageable(pageable)
+            .build();
+
+    return query;
+}
+```
+
+ Isso já reproduz praticamente todo o seu:
+
+```
+ProductSpecificationFactory.publicView(filter)
+```
+
+ mas usando o mecanismo de consulta do Elasticsearch.
+
+---
+
+ ### 5\. Manager
+
+ Não precisamos criar outro índice.
+
+ O mesmo:
+
+```
+products
+```
+
+ pode atender:
+
+```
+public
+manager
+```
+
+ Criamos outra query:
+
+```
+public SearchPage<ProductDocument> search(
+        ProductManagerFilter filter,
+        Pageable pageable
+) {
+    BoolQuery.Builder bool = new BoolQuery.Builder();
+
+    addSearch(bool, filter.search());
+    addCategory(bool, filter.category());
+    addBrand(bool, filter.brand());
+    addOnSale(bool, filter.onSale());
+    addFeatured(bool, filter.featured());
+
+    addPriceRange(
+            bool,
+            filter.minPrice(),
+            filter.maxPrice()
+    );
+
+    addCostRange(
+            bool,
+            filter.minCost(),
+            filter.maxCost()
+    );
+
+    addBooleanFilter(
+            bool,
+            "active",
+            filter.active()
+    );
+
+    addBooleanFilter(
+            bool,
+            "hasAvailableStock",
+            filter.hasAvailableStock()
+    );
+
+    addDateRange(
+            bool,
+            "createdAt",
+            filter.createdFrom(),
+            filter.createdTo()
+    );
+
+    addDateRange(
+            bool,
+            "updatedAt",
+            filter.updatedFrom(),
+            filter.updatedTo()
+    );
+
+    Query query = NativeQuery.builder()
+            .withQuery(q -> q.bool(bool.build()))
+            .withPageable(pageable)
+            .build();
+
+    return SearchHitSupport.searchPageFor(
+            operations.search(query, ProductDocument.class),
+            pageable
+    );
+}
+```
+
+ E aqui começa a ficar interessante: podemos extrair os pedaços comuns para não duplicar tudo.
+
+---
+
+ ### 6\. Um `ProductSearchQueryBuilder`
+
+ Eu provavelmente organizaria assim:
+
+```
+product
+├── application
+│   └── ...
+├── domain
+│   └── ...
+└── infrastructure
+    ├── persistence
+    │   └── jpa
+    │       ├── ProductRepository
+    │       └── ProductSpecifications
+    │
+    └── search
+        ├── ProductDocument
+        ├── ProductSearchRepository
+        ├── ProductSearchQueryBuilder
+        └── ProductSearchIndexer
+```
+
+ E o builder:
+
+```
+@Component
+public class ProductSearchQueryBuilder {
+
+    public BoolQuery.Builder baseQuery() {
+        return new BoolQuery.Builder();
+    }
+
+    public void search(
+            BoolQuery.Builder query,
+            String search
+    ) {
+        if (search == null || search.isBlank()) {
+            return;
+        }
+
+        query.must(m -> m.multiMatch(mm -> mm
+                .query(search.trim())
+                .fields(
+                        "title^4",
+                        "brandTitle^3",
+                        "categoryTitle^2",
+                        "description",
+                        "sku^5",
+                        "slug"
+                )
+        ));
+    }
+
+    public void category(
+            BoolQuery.Builder query,
+            UUID categoryId
+    ) {
+        if (categoryId == null) {
+            return;
+        }
+
+        query.filter(f -> f.term(t -> t
+                .field("categoryId")
+                .value(categoryId.toString())
+        ));
+    }
+
+    public void brand(
+            BoolQuery.Builder query,
+            UUID brandId
+    ) {
+        if (brandId == null) {
+            return;
+        }
+
+        query.filter(f -> f.term(t -> t
+                .field("brandId")
+                .value(brandId.toString())
+        ));
+    }
+
+    public void booleanFilter(
+            BoolQuery.Builder query,
+            String field,
+            Boolean value
+    ) {
+        if (value == null) {
+            return;
+        }
+
+        query.filter(f -> f.term(t -> t
+                .field(field)
+                .value(value)
+        ));
+    }
+}
+```
+
+ Aí o public e manager ficam bem menores.
+
+---
+
+ ## 7\. O ponto que falta: alimentar o Elasticsearch
+
+ Esse é **essencial**.
+
+ Quando você cria:
+
+```
+Product product
+```
+
+ o Elasticsearch não sabe que ele existe.
+
+ Precisamos sincronizar:
+
+```
+PostgreSQL
+     │
+     │ Product
+     ▼
+ProductDocument
+     │
+     ▼
+Elasticsearch
+```
+
+ Eu criaria:
+
+```
+@Component
+public class ProductSearchIndexer {
+
+    private final ProductSearchRepository repository;
+
+    public ProductSearchIndexer(
+            ProductSearchRepository repository
+    ) {
+        this.repository = repository;
+    }
+
+    public void index(Product product) {
+
+        ProductDocument document = new ProductDocument();
+
+        document.setId(product.getId());
+        document.setTitle(product.getTitle());
+        document.setDescription(product.getDescription());
+        document.setSlug(product.getSlug());
+
+        document.setSku(product.getSku());
+        document.setBarcode(product.getBarcode());
+
+        document.setCategoryId(product.getCategory().getId());
+        document.setCategoryTitle(product.getCategory().getTitle());
+
+        document.setBrandId(product.getBrand().getId());
+        document.setBrandTitle(product.getBrand().getTitle());
+
+        document.setPrice(product.getPrice());
+        document.setSalePrice(product.getSalePrice());
+        document.setCostPrice(product.getCostPrice());
+
+        document.setRating(product.getRating());
+        document.setRatingCount(product.getRatingCount());
+
+        document.setActive(product.getActive());
+        document.setFeatured(product.getFeatured());
+
+        document.setOnSale(
+                product.getSalePrice() != null &&
+                product.getSalePrice().compareTo(product.getPrice()) < 0
+        );
+
+        int availableQuantity = product.getStocks()
+                .stream()
+                .mapToInt(Stock::getAvailableQuantity)
+                .sum();
+
+        document.setHasAvailableStock(
+                availableQuantity > 0
+        );
+
+        document.setAvailableForSale(
+                product.getActive() && availableQuantity > 0
+        );
+
+        document.setCreatedAt(product.getCreatedAt());
+        document.setUpdatedAt(product.getUpdatedAt());
+
+        repository.save(document);
+    }
+
+    public void delete(UUID productId) {
+        repository.deleteById(productId);
+    }
+}
+```
+
+ **Aqui eu faria uma mudança antes de colocar isso em produção:** não dependeria de `product.getStocks()` dessa maneira se estoque puder mudar independentemente do `Product`. O indexador precisa ser chamado também quando o estoque mudar.
+
+---
+
+ ## E o `ProductService`?
+
+ Aí sim podemos mudar:
+
+```
+public PageResponse<ProductPublicResponseDto> getPublicViewProducts(
+        ProductPublicFilter filter,
+        Pageable pageable
+) {
+```
+
+ para decidir a origem da pesquisa.
+
+ Por exemplo:
+
+```
+if (filter.search() == null || filter.search().isBlank()) {
+    // JPA
+} else {
+    // Elasticsearch
+}
+```
+
+ **Mas eu não faria necessariamente essa decisão.**
+
+ Uma alternativa melhor é o Elasticsearch assumir **toda a busca de catálogo**, mesmo quando `search` está vazio:
+
+```
+GET /products
+        ↓
+Elasticsearch
+        ↓
+IDs + ordenação
+        ↓
+PostgreSQL
+        ↓
+DTO
+```
+
+ Assim você não tem dois comportamentos diferentes dependendo de o usuário preencher `search`.
+
+ E isso nos leva a uma questão importante do seu projeto: **paginação e ordenação**.
+
+ Seu endpoint aceita:
+
+```
+Pageable pageable
+```
+
+ Então precisamos preservar corretamente:
+
+```
+page
+size
+sort=title
+sort=price
+sort=createdAt
+...
+```
+
+ no Elasticsearch **e depois buscar os Products no PostgreSQL na mesma ordem retornada pelo Elastic**.
+
+ Essa parte eu faria antes de mexer no `ProductService`, porque é onde a integração realmente fica consistente com sua API atual.
+
+
+
+
+
+
+
+
+
+ Sim. **É exatamente essa a ideia para o `Stock`**, se o estoque não for usado para ranquear a busca.
+
+  O fluxo pode ser:
+
+ ```
+ Elasticsearch
+    ↓
+ IDs dos produtos + relevância/ordenação
+    ↓
+ PostgreSQL
+    ↓
+ Product + Stock
+    ↓
+ ProductPublicResponseDto
+ ```
+
+  Você já faz algo parecido hoje:
+
+ ```
+ var stocksByProductId = findStocksByProductIds(page);
+ ```
+
+  Então dá para manter essa parte. A diferença é que a `page` deixa de vir do `ProductRepository` e passa a vir da busca no Elasticsearch.
+
+  Para filtros como `hasAvailableStock` ou `availableForSale`, porém, aí o estoque precisa estar **representado no índice** ou ser consultado de alguma maneira antes de fechar a busca. Eu manteria `availableQuantity`/flags no documento para esses filtros.
+
+  ## Controller
+
+  **Sim, o Controller continua praticamente igual.**
+
+  Seu:
+
+ ```
+ @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+ public ResponseEntity<PageResponse<ProductPublicResponseDto>> searchPublicViewProducts(
+         @ParameterObject @ModelAttribute ProductPublicFilter filter,
+         @PageableDefault(size = 12, sort = "title") Pageable pageable
+ ) {
+     return ResponseEntity.ok().body(
+         service.getPublicViewProducts(filter, pageable)
+     );
+ }
+ ```
+
+  continua.
+
+  E o manager também:
+
+ ```
+ @GetMapping(path = "/manager", produces = MediaType.APPLICATION_JSON_VALUE)
+ @PreAuthorize("hasRole('MANAGER')")
+ @SecurityRequirement(name = "bearerAuth")
+ public ResponseEntity<PageResponse<ProductWithStockResponseDto>> searchManagerViewProducts(
+         @ParameterObject @ModelAttribute ProductManagerFilter filter,
+         @PageableDefault(size = 12, sort = "title") Pageable pageable
+ ) {
+     return ResponseEntity.ok().body(
+         service.getManagerViewProducts(filter, pageable)
+     );
+ }
+ ```
+
+  **Os `Filter` continuam sendo seus objetos de entrada da API.** Não precisamos criar um `ElasticProductFilter`.
+
+  A mudança fica por baixo:
+
+ ```
+ Controller
+     ↓
+ ProductPublicFilter
+     ↓
+ ProductService
+     ↓
+ ProductSearchRepository
+     ↓
+ Elasticsearch
+ ```
+
+  e:
+
+ ```
+ Controller
+     ↓
+ ProductManagerFilter
+     ↓
+ ProductService
+     ↓
+ ProductSearchRepository
+     ↓
+ Elasticsearch
+ ```
+
+  Depois o service pode pegar os resultados do Elastic e fazer exatamente o que você já faz para obter `Stock` e montar os DTOs.
+
+  Então, conceitualmente, **a API não precisa saber que você trocou o mecanismo de busca**. Isso é justamente o que eu buscaria nessa implementação.
+
+
+
+
+
+
+  Numa arquitetura **CQRS (Command Query Responsibility Segregation)**, normalmente você encontra:
+
+   - **Commands** — representam intenções de alteração de estado (`CreateOrder`, `CancelOrder`).
+  - **Command Handlers** — processam os commands e executam as regras de negócio.
+  - **Queries** — representam consultas (`GetOrderById`, `ListOrders`).
+  - **Query Handlers** — executam as consultas, geralmente otimizadas para leitura.
+  - **Domain Model** — entidades, value objects e regras de negócio.
+  - **Aggregates** — agrupam consistência e regras transacionais.
+  - **Events / Domain Events** — comunicam que algo aconteceu (`OrderCreated`).
+  - **Event Handlers / Consumers** — reagem aos eventos.
+  - **Write Model** — modelo/banco utilizado pelas operações de escrita.
+  - **Read Model / Projections** — modelo otimizado para consultas.
+  - **Event Bus / Message Broker** — transporte assíncrono de eventos/comandos.
+  - **Repositories** — abstraem persistência dos aggregates.
+  - **Unit of Work / Transaction** — garante atomicidade das operações de escrita.
+  - **API / Controllers** — recebem requests e encaminham commands/queries.
+
+   Uma implementação **não precisa ter todos esses componentes**; CQRS pode ser aplicado de forma simples, inclusive usando o mesmo banco para leitura e escrita.
+
+
+
+
+
+
+
+   ## Definição de arquitetura CQRS
+
+    **Arquitetura CQRS (Command Query Responsibility Segregation)** é um estilo arquitetural que separa as responsabilidades de **alteração de estado** das responsabilidades de **consulta de dados**.
+
+    Em termos simples:
+
+    > **Commands escrevem e modificam o estado; Queries leem o estado.**
+
+    Uma arquitetura CQRS pode ser definida assim:
+
+   ```
+                       ┌─────────────────────┐
+                       │       Client        │
+                       └──────────┬──────────┘
+                                  │
+                        ┌─────────▼─────────┐
+                        │    API / Gateway  │
+                        └─────────┬─────────┘
+                                  │
+                     ┌────────────┴────────────┐
+                     │                         │
+                COMMAND                     QUERY
+                     │                         │
+           ┌─────────▼─────────┐     ┌─────────▼─────────┐
+           │ Command Handler   │     │  Query Handler    │
+           └─────────┬─────────┘     └─────────┬─────────┘
+                     │                         │
+           ┌─────────▼─────────┐     ┌─────────▼─────────┐
+           │    Domain Model   │     │    Read Model     │
+           │                   │     │    / Projection   │
+           │ Entities          │     └─────────┬─────────┘
+           │ Aggregates        │               │
+           │ Value Objects     │        ┌──────▼──────┐
+           │ Domain Rules      │        │ Read DB     │
+           └─────────┬─────────┘        └─────────────┘
+                     │
+           ┌─────────▼─────────┐
+           │   Write Model     │
+           │    / Database     │
+           └─────────┬─────────┘
+                     │
+                Domain Events
+                     │
+           ┌─────────▼─────────┐
+           │ Event Bus / Broker│
+           └─────────┬─────────┘
+                     │
+           ┌─────────▼─────────┐
+           │ Event Handlers    │
+           │ / Projectors      │
+           └─────────┬─────────┘
+                     │
+                Read Model
+   ```
+
+    ### Responsabilidade de cada parte
+
+    | Componente | Responsabilidade |
+   | --- | --- |
+   | **API** | Recebe requisições externas |
+   | **Command** | Expressa uma intenção de modificar o sistema |
+   | **Command Handler** | Coordena a execução do command |
+   | **Domain Model** | Contém regras e comportamento de negócio |
+   | **Aggregate** | Mantém consistência de um conjunto de objetos |
+   | **Write Model** | Persiste o estado usado pelo domínio |
+   | **Domain Event** | Registra algo relevante que aconteceu |
+   | **Event Bus** | Distribui eventos |
+   | **Event Handler** | Reage aos eventos |
+   | **Projection** | Transforma eventos/dados no formato de leitura |
+   | **Read Model** | Estrutura otimizada para consultas |
+   | **Query** | Expressa uma necessidade de leitura |
+   | **Query Handler** | Executa a consulta |
+   | **Read DB** | Armazena os dados preparados para leitura |
+
+   ### Fluxo de escrita
+
+    Por exemplo, para cancelar um pedido:
+
+   ```
+   POST /orders/123/cancel
+           ↓
+   CancelOrderCommand
+           ↓
+   CancelOrderHandler
+           ↓
+   Order Aggregate
+           ↓
+   Regra de negócio
+           ↓
+   OrderCancelled
+           ↓
+   Write Database
+           ↓
+   Event Bus
+           ↓
+   Projection
+           ↓
+   Read Database
+   ```
+
+    ### Fluxo de leitura
+
+    Para consultar o pedido:
+
+   ```
+   GET /orders/123
+           ↓
+   GetOrderQuery
+           ↓
+   GetOrderQueryHandler
+           ↓
+   Read Database
+           ↓
+   OrderView
+           ↓
+   Response
+   ```
+
+    O ponto fundamental é que **o caminho de escrita e o caminho de leitura possuem responsabilidades diferentes**.
+
+    Isso permite, por exemplo, que o modelo de escrita seja altamente orientado às **regras e consistência do domínio**, enquanto o modelo de leitura seja altamente orientado à **performance e à forma como os dados são consumidos**.
+
+    > **CQRS não significa necessariamente dois bancos, microsserviços, Event Sourcing ou processamento assíncrono.** Esses mecanismos podem ser combinados com CQRS, mas não são requisitos do padrão.
+
+
+
+
+
+    ## 1\. Modelos de escrita e leitura diferentes
+
+     O CQRS permite usar modelos diferentes para escrita e leitura. O modelo de escrita pode ser focado nas regras e invariantes do domínio, enquanto o modelo de leitura pode ser estruturado para representar exatamente as informações que o consumidor precisa.
+
+     ## 2\. Otimizar leitura e escrita de formas diferentes
+
+     Leituras e escritas podem ter necessidades de desempenho bastante diferentes. Com CQRS, cada lado pode ser otimizado de maneira independente, evitando que as características de um tipo de operação prejudiquem o outro.
+
+     ## 3\. Read Models especializados
+
+     As consultas podem ter modelos próprios, preparados especificamente para cada necessidade. Em vez de reconstruir uma resposta complexa a partir de várias entidades e relacionamentos a cada consulta, um Read Model pode conter diretamente os dados necessários para aquela leitura.
+
+     ## 4\. Escrita protegida por regras de domínio
+
+     O lado de escrita pode concentrar as regras que determinam quais alterações são permitidas. Em vez de simplesmente modificar campos, operações como `CancelOrder` ou `ApprovePayment` expressam intenções e passam pelo domínio, que decide se a operação pode acontecer.
+
+     ## 5\. Comandos representam intenções
+
+     Commands permitem modelar operações como intenções de negócio, e não apenas como alterações em dados. `CancelOrder`, por exemplo, representa a intenção de cancelar um pedido, deixando para o domínio decidir como essa ação deve ser realizada e se ela é válida.
+
+     ## 6\. Queries podem ser desenhadas para o consumidor
+
+     Cada Query pode ser construída especificamente para uma necessidade de leitura. Uma consulta para detalhes de um pedido, um dashboard ou um relatório pode ter modelos e estratégias diferentes, sem precisar adaptar uma única entidade de domínio para atender a todos esses casos.
+
+     ## 7\. Escalabilidade independente
+
+     Quando leitura e escrita possuem demandas muito diferentes, cada lado pode ser escalado independentemente. Uma aplicação com poucas alterações e milhões de consultas, por exemplo, pode investir mais recursos na infraestrutura de leitura sem precisar aumentar proporcionalmente a infraestrutura responsável pelas escritas.
+
+     ## 8\. Independência entre modelos
+
+     CQRS permite abandonar a ideia de que existe necessariamente um único modelo que representa uma entidade para todas as finalidades. O domínio pode ter um modelo próprio para escrita, enquanto diferentes necessidades de leitura podem possuir modelos como `OrderSummary`, `OrderDetails`, `CustomerOrderHistory` e `SalesReport`.

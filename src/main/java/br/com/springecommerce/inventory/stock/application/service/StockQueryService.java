@@ -65,4 +65,13 @@ public class StockQueryService {
                     return new ResourceNotFoundException(StockErrors.Target.ID, StockErrors.Code.STOCK_NOT_FOUND);
                 });
     }
+
+    public Integer findAvailableQuantityByProductId(UUID productId) {
+        Stock stock = repository.findByProductId(productId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    StockErrors.Target.PRODUCT,
+                    StockErrors.Code.STOCK_NOT_FOUND));
+
+        return stock.getAvailableQuantity();
+    }
 }

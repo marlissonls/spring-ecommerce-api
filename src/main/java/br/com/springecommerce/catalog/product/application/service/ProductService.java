@@ -3,17 +3,18 @@ package br.com.springecommerce.catalog.product.application.service;
 import br.com.springecommerce.catalog.brand.application.service.BrandService;
 import br.com.springecommerce.catalog.category.application.service.CategoryService;
 import br.com.springecommerce.catalog.product.application.dto.*;
+import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot;
+import br.com.springecommerce.catalog.product.application.snapshot.ProductStockSnapshot;
+import br.com.springecommerce.catalog.product.domain.exception.ProductErrors;
 import br.com.springecommerce.catalog.product.domain.exception.ProductUnavailableException;
 import br.com.springecommerce.catalog.product.domain.model.Product;
-import br.com.springecommerce.catalog.product.domain.exception.ProductErrors;
+import br.com.springecommerce.catalog.product.domain.valueobject.ProductImage;
+import br.com.springecommerce.catalog.product.infrastructure.persistence.ProductRepository;
+import br.com.springecommerce.catalog.product.infrastructure.specification.ProductSpecificationFactory;
 import br.com.springecommerce.catalog.product.presentation.filter.ProductManagerFilter;
 import br.com.springecommerce.catalog.product.presentation.filter.ProductPublicFilter;
-import br.com.springecommerce.catalog.product.infrastructure.persistence.ProductRepository;
-import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot;
-import br.com.springecommerce.catalog.product.infrastructure.specification.ProductSpecificationFactory;
-import br.com.springecommerce.catalog.product.domain.valueobject.ProductImage;
-import br.com.springecommerce.inventory.stock.domain.model.Stock;
 import br.com.springecommerce.inventory.stock.application.service.StockQueryService;
+import br.com.springecommerce.inventory.stock.domain.model.Stock;
 import br.com.springecommerce.shared.exception.base.ConflictException;
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
 import br.com.springecommerce.shared.pagination.PageResponse;
@@ -116,14 +117,15 @@ public class ProductService {
         );
     }
 
-    public ProductSnapshot getAvailableProduct(UUID id) {
-        return repository.findAvailableProduct(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                ProductErrors.Target.ID,
-                                ProductErrors.Code.PRODUCT_NOT_FOUND
-                        )
-                );
+    public ProductStockSnapshot getAvailableProduct(UUID id) {
+        ProductSnapshot product = repository.findAvailableProduct(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ProductErrors.Target.ID,
+                        ProductErrors.Code.PRODUCT_NOT_FOUND));
+
+        Integer stock = stockQueryService.findAvailableQuantityByProductId(id);
+
+        return new ProductStockSnapshot(product, stock);
     }
 
     public ProductManagerDetailsResponseDto findById(UUID id) {

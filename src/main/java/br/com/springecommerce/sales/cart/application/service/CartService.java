@@ -1,20 +1,19 @@
 package br.com.springecommerce.sales.cart.application.service;
 
 import br.com.springecommerce.catalog.product.application.service.ProductService;
-import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot;
+import br.com.springecommerce.catalog.product.application.snapshot.ProductStockSnapshot;
+import br.com.springecommerce.inventory.stock.domain.exception.InsufficientStockException;
 import br.com.springecommerce.inventory.stock.domain.exception.StockErrors;
 import br.com.springecommerce.sales.cart.application.dto.CartAddProductRequestDto;
 import br.com.springecommerce.sales.cart.application.dto.CartItemResponseDto;
 import br.com.springecommerce.sales.cart.application.dto.CartResponseDto;
 import br.com.springecommerce.sales.cart.application.snapshot.CartItemSnapshot;
+import br.com.springecommerce.sales.cart.application.snapshot.CartSnapshot;
+import br.com.springecommerce.sales.cart.domain.exception.CartErrors;
 import br.com.springecommerce.sales.cart.domain.exception.CartIsEmptyException;
 import br.com.springecommerce.sales.cart.domain.model.Cart;
-import br.com.springecommerce.sales.cart.domain.exception.CartErrors;
-import br.com.springecommerce.sales.cart.infrastructure.persistence.repository.CartRepository;
-import br.com.springecommerce.sales.cart.application.snapshot.CartSnapshot;
 import br.com.springecommerce.sales.cart.domain.status.CartStatus;
-import br.com.springecommerce.inventory.stock.domain.exception.InsufficientStockException;
-
+import br.com.springecommerce.sales.cart.infrastructure.persistence.repository.CartRepository;
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,9 +53,7 @@ public class CartService {
             items = List.of();
         } else {
             cart = cartOpt.get();
-            items = repository.findCartItems(cart.getId())
-                    .stream()
-                    .map(CartItemSnapshot::new)
+            items = repository.findCartItems(cart.getId()).stream()
                     .map(CartItemResponseDto::new)
                     .toList();
         }
@@ -69,7 +66,7 @@ public class CartService {
         logger.debug("Adding product to cart. customerId={}, productId={}, quantity={}",
                 userId, dto.productId(), dto.quantity());
 
-        ProductSnapshot product = productService.getAvailableProduct(dto.productId());
+        ProductStockSnapshot product = productService.getAvailableProduct(dto.productId());
 
         if (dto.quantity() > product.stock()) {
             throw new InsufficientStockException(
@@ -83,6 +80,8 @@ public class CartService {
 
         cart.addItem(
                 product.id(),
+                product.title(),
+                product.productImage(),
                 product.effectivePrice(),
                 dto.quantity()
         );
@@ -111,10 +110,7 @@ public class CartService {
     public CartSnapshot getCartSnapshot(UUID customerId) {
         Cart cart = findOpenCartOrThrow(customerId);
 
-        List<CartItemSnapshot> items = repository.findCartItems(cart.getId())
-                .stream()
-                .map(CartItemSnapshot::new)
-                .toList();
+        List<CartItemSnapshot> items = repository.findCartItems(cart.getId());
 
         if (items.isEmpty()) {
             throw new CartIsEmptyException(
