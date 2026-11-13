@@ -1,7 +1,10 @@
 package br.com.springecommerce.inventory.stock.domain.model;
 
-import br.com.springecommerce.catalog.product.domain.model.Product;
+import br.com.springecommerce.inventory.stock.domain.exception.InsufficientStockException;
+import br.com.springecommerce.inventory.stock.domain.exception.StockErrors;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -15,12 +18,8 @@ public class Stock {
     @Column
     private UUID id;
 
-    @Column(name = "product_id", insertable = false, updatable = false)
+    @Column(name = "product_id", nullable = false, unique = true)
     private UUID productId;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
 
     @Column(name = "available_quantity", nullable = false)
     private Integer availableQuantity;
@@ -31,48 +30,42 @@ public class Stock {
     @Column(name = "minimum_quantity", nullable = false)
     private Integer minimumQuantity;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     protected Stock() {}
 
     public Stock(
-            Product product,
+            UUID productId,
             Integer availableQuantity,
             Integer minimumQuantity
     ) {
-        this.product = product;
+        this.id = UUID.randomUUID();
+        this.productId = productId;
         this.availableQuantity = availableQuantity;
         this.minimumQuantity = minimumQuantity;
-
-        this.productId = product.getId();
     }
 
     public static Stock createFrom(
-            Product product,
+            UUID productId,
             Integer availableQuantity,
             Integer minimumQuantity
     ) {
         return new Stock(
-            product, availableQuantity, minimumQuantity
+                productId, availableQuantity, minimumQuantity
         );
     }
 
-    @PrePersist
-    protected void onCreate() {
-        if (id == null)
-            id = UUID.randomUUID();
-
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    public void validateAvailableStock(Integer requestedQuantity) {
+        if (requestedQuantity > availableQuantity)
+            throw new InsufficientStockException(
+                    StockErrors.Target.QUANTITY,
+                    StockErrors.Code.STOCK_QUANTITY_INSUFFICIENT);
     }
 
     public UUID getId() {
@@ -89,14 +82,6 @@ public class Stock {
 
     public void setProductId(UUID productId) {
         this.productId = productId;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
     }
 
     public Integer getAvailableQuantity() {

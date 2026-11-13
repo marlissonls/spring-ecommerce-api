@@ -150,7 +150,7 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
                 .withBrand(brand)
                 .create();
         Stock stock = stockFixture
-                .withProduct(product)
+                .withProduct(product.getId())
                 .withAvailableQuantity(stockAvailableQuantity)
                 .create();
 
@@ -196,7 +196,7 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(item.productId()).isEqualTo(product.getId());
         assertThat(item.quantity()).isEqualTo(cartItemQuantity);
-        assertThat(item.unitPrice()).isEqualByComparingTo(productSalePrice);
+        assertThat(item.price()).isEqualByComparingTo(productSalePrice);
 
         assertThat(response.totalAmount())
                 .isEqualByComparingTo(expectedTotal);
@@ -306,7 +306,7 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
                 .withBrand(brand)
                 .create();
         Stock stock = stockFixture
-                .withProduct(product)
+                .withProduct(product.getId())
                 .create();
 
         Cart cart = cartFixture.create(customer);
@@ -329,7 +329,7 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
         assertThat(response.code()).isEqualTo(ErrorCode.PRODUCT_UNAVAILABLE.name());
 
         assertThat(response.errors().get(0).target())
-                .isEqualTo(ProductErrors.Target.PRODUCT);
+                .isEqualTo(ProductErrors.Target.ID);
 
         assertThat(response.errors().get(0).code())
                 .isEqualTo(ProductErrors.Code.PRODUCT_UNAVAILABLE);
@@ -359,8 +359,8 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
                 .withBrand(brand)
                 .create();
         Stock stock = stockFixture
+                .withProduct(product.getId())
                 .withAvailableQuantity(stockAvailableQuantityBeforeAddToCart)
-                .withProduct(product)
                 .create();
 
         Cart cart = cartFixture.create(customer);
@@ -383,7 +383,7 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
         assertThat(response.code()).isEqualTo(ErrorCode.NOT_FOUND.name());
 
         assertThat(response.errors().get(0).target())
-                .isEqualTo(StockErrors.Target.PRODUCT);
+                .isEqualTo(StockErrors.Target.PRODUCT_ID);
 
         assertThat(response.errors().get(0).code())
                 .isEqualTo(StockErrors.Code.STOCK_NOT_FOUND);
@@ -413,8 +413,8 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
                 .withBrand(brand)
                 .create();
         Stock stock = stockFixture
+                .withProduct(product.getId())
                 .withAvailableQuantity(stockAvailableQuantityBeforeAddToCart)
-                .withProduct(product)
                 .create();
 
         Cart cart = cartFixture.create(customer);

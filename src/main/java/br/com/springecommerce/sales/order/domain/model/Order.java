@@ -68,23 +68,26 @@ public class Order {
 
     protected Order() {}
 
-    public Order(UUID customerId, BigDecimal subtotalAmount) {
+    public Order(UUID customerId) {
         this.id = UUID.randomUUID();
         this.customerId = customerId;
-        this.subtotalAmount = subtotalAmount;
-
-        recalculateTotal();
     }
 
     public static Order createFrom(OrderCreationData data) {
-        Order order = new Order(
-                data.customerId(),
-                data.subtotalAmount()
-        );
+        Order order = new Order(data.customerId());
 
         data.items().forEach(order::addItem);
 
+        order.recalculateSubtotal();
+        order.recalculateTotal();
+
         return order;
+    }
+
+    private void recalculateSubtotal() {
+        this.subtotalAmount = items.stream()
+                .map(OrderItem::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private void recalculateTotal() {

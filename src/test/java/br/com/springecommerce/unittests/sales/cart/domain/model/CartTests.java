@@ -9,13 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class CartTests {
+class CartTests {
+
     private UUID customerId;
     private Cart cart;
 
@@ -26,30 +26,22 @@ public class CartTests {
     }
 
     @Test
-    void shouldCreateAnActiveCartWithEmptyItemsAndZeroSubtotal() {
-        // Given
-        UUID customerId = UUID.randomUUID();
-
-        // When
-        Cart cart = Cart.createFrom(customerId);
-
+    void shouldCreateAnActiveCartWithEmptyItems() {
         // Then
         assertNotNull(cart.getId());
         assertEquals(customerId, cart.getCustomerId());
         assertTrue(cart.getItems().isEmpty());
-        assertEquals(BigDecimal.ZERO, cart.getSubtotalAmount());
         assertEquals(CartStatus.ACTIVE, cart.getStatus());
     }
 
     @Test
-    void shouldAddProductAndCalculateSubtotal() {
+    void shouldAddProductToCart() {
         // Given
         UUID productId = UUID.randomUUID();
-        BigDecimal unitPrice = new BigDecimal("100.00");
         int quantity = 2;
 
         // When
-        cart.addItem(productId, unitPrice, quantity);
+        cart.addItem(productId, quantity);
 
         // Then
         assertEquals(1, cart.getItems().size());
@@ -57,47 +49,32 @@ public class CartTests {
         CartItem item = cart.getItems().iterator().next();
 
         assertEquals(productId, item.getProductId());
-        assertEquals(unitPrice, item.getUnitPrice());
         assertEquals(quantity, item.getQuantity());
-        assertEquals(
-                new BigDecimal("200.00"),
-                cart.getSubtotalAmount()
-        );
     }
 
     @Test
-    void shouldAddMultipleProductsAndCalculateSubtotal() {
+    void shouldAddMultipleProductsToCart() {
         // Given
         UUID firstProductId = UUID.randomUUID();
         UUID secondProductId = UUID.randomUUID();
 
-        BigDecimal firstUnitPrice = new BigDecimal("100.00");
-        BigDecimal secondUnitPrice = new BigDecimal("50.00");
-
         // When
-        cart.addItem(firstProductId, firstUnitPrice, 2);
-        cart.addItem(secondProductId, secondUnitPrice, 3);
+        cart.addItem(firstProductId, 2);
+        cart.addItem(secondProductId, 3);
 
         // Then
         assertEquals(2, cart.getItems().size());
-        assertEquals(
-                new BigDecimal("350.00"),
-                cart.getSubtotalAmount()
-        );
     }
 
     @Test
-    void shouldUpdateExistingProductQuantityAndPrice() {
+    void shouldUpdateExistingProductQuantity() {
         // Given
         UUID productId = UUID.randomUUID();
 
-        BigDecimal oldUnitPrice = new BigDecimal("100.00");
-        BigDecimal newUnitPrice = new BigDecimal("80.00");
-
-        cart.addItem(productId, oldUnitPrice, 2);
+        cart.addItem(productId, 2);
 
         // When
-        cart.addItem(productId, newUnitPrice, 3);
+        cart.addItem(productId, 3);
 
         // Then
         assertEquals(1, cart.getItems().size());
@@ -105,19 +82,17 @@ public class CartTests {
         CartItem item = cart.getItems().iterator().next();
 
         assertEquals(productId, item.getProductId());
-        assertEquals(newUnitPrice, item.getUnitPrice());
         assertEquals(3, item.getQuantity());
-        assertEquals(new BigDecimal("240.00"), cart.getSubtotalAmount());
     }
 
     @Test
-    void shouldRemoveProductAndRecalculateSubtotal() {
+    void shouldRemoveProductFromCart() {
         // Given
         UUID firstProductId = UUID.randomUUID();
         UUID secondProductId = UUID.randomUUID();
 
-        cart.addItem(firstProductId, new BigDecimal("100.00"), 2);
-        cart.addItem(secondProductId, new BigDecimal("50.00"), 3);
+        cart.addItem(firstProductId, 2);
+        cart.addItem(secondProductId, 3);
 
         // When
         cart.removeItem(firstProductId);
@@ -128,7 +103,6 @@ public class CartTests {
                 secondProductId,
                 cart.getItems().iterator().next().getProductId()
         );
-        assertEquals(new BigDecimal("150.00"), cart.getSubtotalAmount());
     }
 
     @Test
@@ -144,18 +118,17 @@ public class CartTests {
     }
 
     @Test
-    void shouldRemoveLastProductAndResetSubtotal() {
+    void shouldRemoveLastProductFromCart() {
         // Given
         UUID productId = UUID.randomUUID();
 
-        cart.addItem(productId, new BigDecimal("100.00"), 2);
+        cart.addItem(productId, 2);
 
         // When
         cart.removeItem(productId);
 
         // Then
         assertTrue(cart.getItems().isEmpty());
-        assertEquals(BigDecimal.ZERO, cart.getSubtotalAmount());
     }
 
     @Test

@@ -39,7 +39,7 @@ public class BrandController implements BrandControllerDocs {
     }
 
     @Override
-    @GetMapping(path = "/manager/slug/{slug}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/manager", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<List<BrandResponseDto>> findAll() {
         return ResponseEntity.ok().body(service.findAll());

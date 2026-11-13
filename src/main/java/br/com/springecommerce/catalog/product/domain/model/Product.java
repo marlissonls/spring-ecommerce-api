@@ -5,8 +5,10 @@ import br.com.springecommerce.catalog.category.domain.model.Category;
 import br.com.springecommerce.catalog.product.application.dto.ProductCreateDto;
 import br.com.springecommerce.catalog.product.application.dto.ProductImageCreateDto;
 import br.com.springecommerce.catalog.product.application.dto.ProductUpdateDto;
+import br.com.springecommerce.catalog.product.domain.exception.ProductErrors;
+import br.com.springecommerce.catalog.product.domain.exception.ProductUnavailableException;
 import br.com.springecommerce.catalog.product.domain.valueobject.ProductImage;
-import br.com.springecommerce.inventory.stock.domain.model.Stock;
+
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -79,9 +81,6 @@ public class Product {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Stock> stocks = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(
@@ -166,6 +165,13 @@ public class Product {
             this.setBrandId(dto.brandId());
             this.setBrand(brand);
         }
+    }
+
+    public void validateActive() {
+        if (!active)
+            throw new ProductUnavailableException(
+                    ProductErrors.Target.ID,
+                    ProductErrors.Code.PRODUCT_UNAVAILABLE);
     }
 
     public void addImages(List<ProductImageCreateDto> imagesDto) {
@@ -333,12 +339,12 @@ public class Product {
         this.updatedAt = updatedAt;
     }
 
-    public List<Stock> getStocks() {
-        return stocks;
+    public Set<ProductImage> getImages() {
+        return images;
     }
 
-    public void setStocks(List<Stock> stocks) {
-        this.stocks = stocks;
+    public void setImages(Set<ProductImage> images) {
+        this.images = images;
     }
 
     @Override

@@ -7,7 +7,7 @@ public final class StockErrors {
     public final static class Target {
         public static final String STOCK = "stock";
         public final static String ID = "stock.id";
-        public final static String PRODUCT = "stock.product";
+        public final static String PRODUCT_ID = "stock.product_id";
         public final static String QUANTITY = "stock.available_quantity";
         public final static String RESERVED_QUANTITY = "stock.reserved_quantity";
         public final static String MIN_QUANTITY = "stock.min_quantity";

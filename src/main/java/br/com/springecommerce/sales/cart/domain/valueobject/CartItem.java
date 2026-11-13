@@ -5,7 +5,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.Positive;
 
-import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -15,10 +14,6 @@ public class CartItem {
     @Column(name = "product_id", nullable = false)
     private UUID productId;
 
-    @Positive(message = CartErrors.Code.CART_ITEM_UNIT_PRICE_INVALID)
-    @Column(name = "unit_price", nullable = false)
-    private BigDecimal unitPrice;
-
     @Positive(message = CartErrors.Code.CART_ITEM_QUANTITY_INVALID)
     @Column(nullable = false)
     private Integer quantity;
@@ -27,19 +22,10 @@ public class CartItem {
 
     public CartItem(
             UUID productId,
-            BigDecimal unitPrice,
             Integer quantity
     ) {
         this.productId = productId;
-        this.unitPrice = unitPrice;
         this.quantity = quantity;
-    }
-
-    public BigDecimal getTotalPrice() {
-
-        return unitPrice.multiply(
-                BigDecimal.valueOf(quantity)
-        );
     }
 
     public UUID getProductId() {
@@ -52,14 +38,6 @@ public class CartItem {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public void setUnitPrice(BigDecimal unitPrice) {
-        this.unitPrice = unitPrice;
     }
 
     @Override

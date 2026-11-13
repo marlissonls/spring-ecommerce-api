@@ -2,10 +2,11 @@ package br.com.springecommerce.catalog.product.application.dto;
 
 import br.com.springecommerce.catalog.product.domain.model.Product;
 import br.com.springecommerce.catalog.product.domain.valueobject.ProductImage;
-import br.com.springecommerce.inventory.stock.domain.model.Stock;
+import br.com.springecommerce.inventory.stock.application.snapshot.StockSnapshot;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public record ProductPublicDetailsResponseDto(
@@ -23,7 +24,7 @@ public record ProductPublicDetailsResponseDto(
         UUID categoryId,
         UUID brandId
 ) {
-    public ProductPublicDetailsResponseDto(Product product, List<ProductImage> images, Stock stock) {
+    public ProductPublicDetailsResponseDto(Product product, List<ProductImage> images, Optional<StockSnapshot> stock) {
         this(
             product.getId(),
             product.getTitle(),
@@ -31,7 +32,7 @@ public record ProductPublicDetailsResponseDto(
             product.getDescription(),
             product.getPrice(),
             product.getSalePrice(),
-            stock.getAvailableQuantity(),
+            stock.map(StockSnapshot::availableQuantity).orElse(null),
             product.getFeatured(),
             product.getRating(),
             product.getRatingCount(),

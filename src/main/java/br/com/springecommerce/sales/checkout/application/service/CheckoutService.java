@@ -1,8 +1,9 @@
 package br.com.springecommerce.sales.checkout.application.service;
 
 import br.com.springecommerce.catalog.product.application.service.ProductService;
-import br.com.springecommerce.inventory.stock.application.movement.StockMovementItem;
-import br.com.springecommerce.inventory.stock.application.service.StockCommandService;
+import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot;
+import br.com.springecommerce.inventory.stock.application.dto.StockReservationRequest;
+import br.com.springecommerce.inventory.stock.application.service.StockService;
 import br.com.springecommerce.sales.cart.application.service.CartService;
 import br.com.springecommerce.sales.cart.application.snapshot.CartItemSnapshot;
 import br.com.springecommerce.sales.cart.application.snapshot.CartSnapshot;
@@ -17,21 +18,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class CheckoutService {
     private final Logger logger = LoggerFactory.getLogger(CheckoutService.class);
 
     private final ProductService productService;
-    private final StockCommandService stockService;
+    private final StockService stockService;
     private final CartService cartService;
     private final OrderService orderService;
 
     public CheckoutService(
             ProductService productService,
-            StockCommandService stockService,
+            StockService stockService,
             CartService cartService,
             OrderService orderService
     ) {
@@ -42,25 +47,27 @@ public class CheckoutService {
     }
 
     @Transactional
-    public OrderResponseDto checkout(UUID userId) {
-        logger.debug("Checkout started. customerId={}", userId);
+    public OrderResponseDto checkout(UUID customerId) {
+        logger.debug("Checkout started. customerId={}", customerId);
 
-        CartSnapshot snapshot = cartService.getCartSnapshot(userId);
+        CartSnapshot snapshot = cartService.getCartSnapshot(customerId);
 
-        productService.checkProductsAreActive(extractProductIds(snapshot));
+        List<ProductSnapshot> products = productService.findAvailableProducts(extractProductIds(snapshot));
 
-        stockService.reserveItems(buildReservationItems(snapshot));
+        stockService.reserveItems(buildReservationItems(snapshot.items()));
 
-        Order order = orderService.create(buildOrderCreationData(snapshot));
+        Order order = orderService.create(
+                buildOrderCreationData(snapshot, products)
+        );
 
         cartService.markAsConverted(snapshot.cart());
 
         logger.info(
                 "Checkout completed. customerId={}, orderId={}, items={}, total={}",
-                userId, order.getId(), snapshot.items().size(), order.getTotalAmount()
+                customerId, order.getId(), snapshot.items().size(), order.getTotalAmount()
         );
 
-        return new OrderResponseDto(order, buildOrderItemsResponse(snapshot));
+        return new OrderResponseDto(order, buildOrderItemsResponse(snapshot, products));
     }
 
     private List<UUID> extractProductIds(CartSnapshot snapshot) {
@@ -70,36 +77,68 @@ public class CheckoutService {
                 .toList();
     }
 
-    private List<StockMovementItem> buildReservationItems(CartSnapshot snapshot) {
-        return snapshot.items()
+    private List<StockReservationRequest> buildReservationItems(List<CartItemSnapshot> items) {
+        return items
                 .stream()
-                .map(item -> new StockMovementItem(
+                .map(item -> new StockReservationRequest(
                         item.productId(),
                         item.quantity()
                 ))
                 .toList();
     }
 
-    private OrderCreationData buildOrderCreationData(CartSnapshot snapshot) {
+    private OrderCreationData buildOrderCreationData(
+            CartSnapshot snapshot,
+            List<ProductSnapshot> products
+    ) {
+        Map<UUID, ProductSnapshot> productMap = products.stream()
+                .collect(Collectors.toMap(
+                        ProductSnapshot::id,
+                        Function.identity()
+                ));
+
         return new OrderCreationData(
                 snapshot.cart().getCustomerId(),
-                snapshot.cart().getSubtotalAmount(),
                 snapshot.items().stream()
-                        .map(i -> new OrderItemData(
-                                i.productId(),
-                                i.unitPrice(),
-                                i.quantity()
-                        ))
+                        .map(item -> {
+                            ProductSnapshot product = productMap.get(item.productId());
+
+                            return new OrderItemData(
+                                    item.productId(),
+                                    product.title(),
+                                    product.productImage(),
+                                    product.effectivePrice(),
+                                    item.quantity()
+                            );
+                        })
                         .toList()
-//                shipping.getAmount(),
-//                coupon.getDiscountAmount()
         );
     }
 
-    private List<OrderItemResponseDto> buildOrderItemsResponse(CartSnapshot snapshot) {
+    private List<OrderItemResponseDto> buildOrderItemsResponse(
+            CartSnapshot snapshot,
+            List<ProductSnapshot> products
+    ) {
+        Map<UUID, ProductSnapshot> productMap = products.stream()
+                .collect(Collectors.toMap(
+                        ProductSnapshot::id,
+                        Function.identity()
+                ));
+
         return snapshot.items()
                 .stream()
-                .map(OrderItemResponseDto::new)
+                .map(item -> {
+                    ProductSnapshot product = productMap.get(item.productId());
+
+                    return new OrderItemResponseDto(
+                            item.productId(),
+                            product.title(),
+                            product.productImage(),
+                            product.effectivePrice(),
+                            item.quantity(),
+                            product.effectivePrice().multiply(BigDecimal.valueOf(item.quantity()))
+                    );
+                })
                 .toList();
     }
 }

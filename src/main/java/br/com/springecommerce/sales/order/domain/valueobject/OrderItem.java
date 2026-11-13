@@ -15,9 +15,15 @@ public class OrderItem {
     @Column(name = "product_id", nullable = false)
     private UUID productId;
 
+    @Column(name = "product_title", nullable = false)
+    private String productTitle;
+
+    @Column(name = "product_image", nullable = false, length = 500)
+    private String productImage;
+
     @Positive(message = OrderErrors.Code.ORDER_ITEM_UNIT_PRICE_INVALID)
-    @Column(name = "unit_price", nullable = false)
-    private BigDecimal unitPrice;
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
 
     @Positive(message = OrderErrors.Code.ORDER_ITEM_QUANTITY_INVALID)
     @Column(nullable = false)
@@ -27,39 +33,50 @@ public class OrderItem {
 
     public OrderItem(
             UUID productId,
-            BigDecimal unitPrice,
+            String productTitle,
+            String productImage,
+            BigDecimal price,
             Integer quantity
     ) {
         this.productId = productId;
-        this.unitPrice = unitPrice;
+        this.productTitle = productTitle;
+        this.productImage = productImage;
+        this.price = price;
         this.quantity = quantity;
     }
 
     public static OrderItem createFrom(OrderItemData item) {
         return new OrderItem(
                 item.productId(),
-                item.unitPrice(),
+                item.productTitle(),
+                item.productImage(),
+                item.price(),
                 item.quantity()
         );
     }
 
     public BigDecimal getTotalPrice() {
-
-        return unitPrice.multiply(
-                BigDecimal.valueOf(quantity)
-        );
+        return price.multiply(BigDecimal.valueOf(quantity));
     }
 
     public UUID getProductId() {
         return productId;
     }
 
-    public Integer getQuantity() {
-        return quantity;
+    public String getProductTitle() {
+        return productTitle;
     }
 
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
+    public String getProductImage() {
+        return productImage;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
     }
 
     @Override

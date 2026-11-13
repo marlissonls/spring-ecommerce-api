@@ -3,23 +3,24 @@ package br.com.springecommerce.catalog.product.application.service;
 import br.com.springecommerce.catalog.brand.application.service.BrandService;
 import br.com.springecommerce.catalog.category.application.service.CategoryService;
 import br.com.springecommerce.catalog.product.application.dto.*;
+import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot;
+import br.com.springecommerce.catalog.product.domain.exception.ProductErrors;
 import br.com.springecommerce.catalog.product.domain.exception.ProductUnavailableException;
 import br.com.springecommerce.catalog.product.domain.model.Product;
-import br.com.springecommerce.catalog.product.domain.exception.ProductErrors;
+import br.com.springecommerce.catalog.product.domain.valueobject.ProductImage;
+import br.com.springecommerce.catalog.product.infrastructure.persistence.ProductRepository;
+import br.com.springecommerce.catalog.product.infrastructure.specification.ProductSpecificationFactory;
 import br.com.springecommerce.catalog.product.presentation.filter.ProductManagerFilter;
 import br.com.springecommerce.catalog.product.presentation.filter.ProductPublicFilter;
-import br.com.springecommerce.catalog.product.infrastructure.persistence.ProductRepository;
-import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot;
-import br.com.springecommerce.catalog.product.infrastructure.specification.ProductSpecificationFactory;
-import br.com.springecommerce.catalog.product.domain.valueobject.ProductImage;
+import br.com.springecommerce.inventory.stock.application.service.StockService;
+import br.com.springecommerce.inventory.stock.application.snapshot.StockSnapshot;
 import br.com.springecommerce.inventory.stock.domain.model.Stock;
-import br.com.springecommerce.inventory.stock.application.service.StockQueryService;
 import br.com.springecommerce.shared.exception.base.ConflictException;
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
 import br.com.springecommerce.shared.pagination.PageResponse;
 import br.com.springecommerce.shared.utils.SlugUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.jspecify.annotations.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -30,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -40,18 +42,18 @@ public class ProductService {
     private final Logger logger = LoggerFactory.getLogger(ProductService.class);
     private final ProductRepository repository;
 
-    private final StockQueryService stockQueryService;
+    private final StockService stockService;
     private final CategoryService categoryService;
     private final BrandService brandService;
 
     public ProductService(
             ProductRepository repository,
-            StockQueryService stockQueryService,
+            StockService stockService,
             CategoryService categoryService,
             BrandService brandService
     ) {
         this.repository = repository;
-        this.stockQueryService = stockQueryService;
+        this.stockService = stockService;
         this.categoryService = categoryService;
         this.brandService = brandService;
     }
@@ -116,16 +118,6 @@ public class ProductService {
         );
     }
 
-    public ProductSnapshot getAvailableProduct(UUID id) {
-        return repository.findAvailableProduct(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                ProductErrors.Target.ID,
-                                ProductErrors.Code.PRODUCT_NOT_FOUND
-                        )
-                );
-    }
-
     public ProductManagerDetailsResponseDto findById(UUID id) {
         logger.debug("Fetching product id={}", id);
 
@@ -133,7 +125,7 @@ public class ProductService {
 
         var productImages = findProductImagesByProductId(product.getId());
 
-        var stock = getStock(product);
+        Optional<StockSnapshot> stock = getStock(product);
 
         return new ProductManagerDetailsResponseDto(product, productImages, stock);
     }
@@ -148,7 +140,7 @@ public class ProductService {
 
         var productImages = findProductImagesByProductId(product.getId());
 
-        var stock = getStock(product);
+        Optional<StockSnapshot> stock = getStock(product);
 
         return new ProductPublicDetailsResponseDto(product, productImages, stock);
     }
@@ -163,7 +155,7 @@ public class ProductService {
 
         var productImages = findProductImagesByProductId(product.getId());
 
-        var stock = getStock(product);
+        Optional<StockSnapshot> stock = getStock(product);
 
         return new ProductManagerDetailsResponseDto(product, productImages, stock);
     }
@@ -178,7 +170,7 @@ public class ProductService {
 
         var productImages = findProductImagesByProductId(product.getId());
 
-        var stock = getStock(product);
+        Optional<StockSnapshot> stock = getStock(product);
 
         return new ProductManagerDetailsResponseDto(product, productImages, stock);
     }
@@ -251,17 +243,30 @@ public class ProductService {
         logger.info("Product activated successfully. id={}", id);
     }
 
-    public void checkProductsAreActive(List<UUID> productIds) {
-        List<Product> products = repository.findAllById(productIds);
+    public void validateActive(UUID id) {
+        Product product = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ProductErrors.Target.ID,
+                        ProductErrors.Code.PRODUCT_NOT_FOUND));
 
-        Map<UUID, Product> productMap = products.stream()
+        product.validateActive();
+    }
+
+    public List<ProductSnapshot> findByIdIn(List<UUID> ids) {
+        return repository.findByIdIn(ids);
+    }
+
+    public List<ProductSnapshot> findAvailableProducts(List<UUID> ids) {
+        List<ProductSnapshot> products = repository.findByIdIn(ids);
+
+        Map<UUID, ProductSnapshot> productMap = products.stream()
                 .collect(Collectors.toMap(
-                        Product::getId,
+                        ProductSnapshot::id,
                         Function.identity()
                 ));
 
-        for (UUID productId : productIds) {
-            Product product = productMap.get(productId);
+        for (UUID productId : ids) {
+            ProductSnapshot product = productMap.get(productId);
 
             if (product == null) {
                 throw new ResourceNotFoundException(
@@ -270,13 +275,15 @@ public class ProductService {
                 );
             }
 
-            if (!product.getActive()) {
+            if (!Boolean.TRUE.equals(product.active())) {
                 throw new ProductUnavailableException(
-                        ProductErrors.Target.PRODUCT,
+                        ProductErrors.Target.ID,
                         ProductErrors.Code.PRODUCT_UNAVAILABLE
                 );
             }
         }
+
+        return products;
     }
 
     private Product findEntityById(UUID id) {
@@ -335,11 +342,9 @@ public class ProductService {
         return repository.getReferenceById(id);
     }
 
-    private @Nullable Stock getStock(Product product) {
-        return stockQueryService.findByProductIdIn(List.of(product.getId()))
-                .stream()
-                .findFirst()
-                .orElse(null);
+    private Optional<StockSnapshot> getStock(Product product) {
+        return stockService.findByProductId(product.getId())
+                .map(StockSnapshot::new);
     }
 
     private List<UUID> getProductIds(Page<Product> page) {
@@ -365,7 +370,7 @@ public class ProductService {
     }
 
     private Map<UUID, Stock> findStocksByProductIds(List<UUID> productIds) {
-        return stockQueryService.findByProductIdIn(productIds)
+        return stockService.findByProductIdIn(productIds)
                 .stream()
                 .collect(Collectors.toMap(
                         Stock::getProductId,
