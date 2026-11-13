@@ -5,47 +5,89 @@ import br.com.springecommerce.inventory.stock.application.dto.StockCreateDto;
 import br.com.springecommerce.inventory.stock.application.dto.StockMinimumQuantityUpdateDto;
 import br.com.springecommerce.inventory.stock.application.dto.StockResponseDto;
 import br.com.springecommerce.inventory.stock.domain.model.Stock;
-import br.com.springecommerce.inventory.stock.application.movement.StockMovementItem;
+import br.com.springecommerce.inventory.stock.application.dto.StockReservationRequest;
 import br.com.springecommerce.inventory.stock.domain.exception.StockErrors;
 import br.com.springecommerce.inventory.stock.infrastructure.persistence.StockRepository;
-import br.com.springecommerce.catalog.product.application.service.ProductService;
 import br.com.springecommerce.inventory.stock.domain.exception.InsufficientStockException;
+import br.com.springecommerce.inventory.stock.infrastructure.specification.StockSpecificationFactory;
+import br.com.springecommerce.inventory.stock.presentation.filter.StockManagerFilter;
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
+import br.com.springecommerce.shared.pagination.PageResponse;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class StockCommandService {
+public class StockService {
 
-    private static final Logger logger = LoggerFactory.getLogger(StockCommandService.class);
+    private static final Logger logger = LoggerFactory.getLogger(StockService.class);
 
     private final StockRepository repository;
-    private final ProductService productService;
 
-    public StockCommandService(
-            StockRepository repository,
-            ProductService productService) {
+    public StockService(StockRepository repository) {
         this.repository = repository;
-        this.productService = productService;
+    }
+
+    public PageResponse<StockResponseDto> findAll(
+            StockManagerFilter filter,
+            Pageable pageable
+    ) {
+        logger.debug("Searching stocks. filter={}, pageable={}", filter, pageable);
+
+        Specification<Stock> spec = StockSpecificationFactory.managerView(filter);
+
+        Page<StockResponseDto> page = repository.findAll(spec, pageable)
+                .map(StockResponseDto::new);
+
+        return new PageResponse<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements()
+        );
+    }
+
+    public StockResponseDto findById(UUID id) {
+        logger.debug("Loading stock. id={}", id);
+
+        return new StockResponseDto(findEntityById(id));
+    }
+
+    public Optional<Stock> findByProductId(UUID productId) {
+        return repository.findByProductId(productId);
+    }
+
+    public List<Stock> findByProductIdIn(List<UUID> ids) {
+        return repository.findByProductIdIn(ids);
+    }
+
+    public void validateAvailableStock(UUID productId, Integer requestedQuantity) {
+        Stock stock = repository.findByProductId(productId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        StockErrors.Target.PRODUCT_ID,
+                        StockErrors.Code.STOCK_NOT_FOUND));
+
+        stock.validateAvailableStock(requestedQuantity);
     }
 
     @Transactional
     public StockResponseDto create(StockCreateDto dto) {
         logger.debug("Creating stock. productId={}", dto.productId());
 
-        var product = productService.getValidReference(dto.productId());
-
         Stock stock = Stock.createFrom(
-                product,
+                dto.productId(),
                 dto.availableQuantity(),
                 dto.minimumQuantity()
         );
@@ -135,10 +177,10 @@ public class StockCommandService {
         logger.info("Reserved stock quantity committed successfully. id={}, quantity={}", id, dto.amount());
     }
 
-    public void reserveItems(@Valid List<StockMovementItem> items) {
+    public void reserveItems(@Valid List<StockReservationRequest> items) {
         List<UUID> productIds = items
                 .stream()
-                .map(StockMovementItem::productId)
+                .map(StockReservationRequest::productId)
                 .toList();
 
         List<Stock> stocks = repository.findByProductIdIn(productIds);
@@ -149,12 +191,12 @@ public class StockCommandService {
                         Function.identity()
                 ));
 
-        for (StockMovementItem movementItem : items) {
+        for (StockReservationRequest movementItem : items) {
             Stock stock = stockMap.get(movementItem.productId());
 
             if (stock == null) {
                 throw new ResourceNotFoundException(
-                        StockErrors.Target.PRODUCT,
+                        StockErrors.Target.PRODUCT_ID,
                         StockErrors.Code.STOCK_NOT_FOUND
                 );
             }
@@ -177,11 +219,11 @@ public class StockCommandService {
         }
     }
 
-    public void releaseItems(@Valid List<StockMovementItem> items) {
-        for (StockMovementItem item: items) {
+    public void releaseItems(@Valid List<StockReservationRequest> items) {
+        for (StockReservationRequest item: items) {
             Stock stock = repository.findByProductId(item.productId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            StockErrors.Target.PRODUCT,
+                            StockErrors.Target.PRODUCT_ID,
                             StockErrors.Code.STOCK_NOT_FOUND
                     ));
 
@@ -201,5 +243,13 @@ public class StockCommandService {
                 );
             }
         }
+    }
+
+    private Stock findEntityById(UUID id) {
+        return repository.findById(id)
+                .orElseThrow(() -> {
+                    logger.warn("Stock not found. id={}", id);
+                    return new ResourceNotFoundException(StockErrors.Target.ID, StockErrors.Code.STOCK_NOT_FOUND);
+                });
     }
 }

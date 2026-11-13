@@ -4,8 +4,7 @@ import br.com.springecommerce.inventory.stock.application.dto.StockAvailableQuan
 import br.com.springecommerce.inventory.stock.application.dto.StockCreateDto;
 import br.com.springecommerce.inventory.stock.application.dto.StockMinimumQuantityUpdateDto;
 import br.com.springecommerce.inventory.stock.application.dto.StockResponseDto;
-import br.com.springecommerce.inventory.stock.application.service.StockCommandService;
-import br.com.springecommerce.inventory.stock.application.service.StockQueryService;
+import br.com.springecommerce.inventory.stock.application.service.StockService;
 import br.com.springecommerce.inventory.stock.presentation.docs.StockControllerDocs;
 import br.com.springecommerce.inventory.stock.presentation.filter.StockManagerFilter;
 import br.com.springecommerce.shared.pagination.PageResponse;
@@ -26,13 +25,10 @@ import java.util.UUID;
 @PreAuthorize("hasRole('MANAGER')")
 public class StockController implements StockControllerDocs {
 
-    private final StockCommandService commandService;
-    private final StockQueryService queryService;
+    private final StockService commandService;
 
-    public StockController(
-            StockQueryService queryService,
-            StockCommandService commandService) {
-        this.queryService = queryService;
+
+    public StockController(StockService commandService) {
         this.commandService = commandService;
     }
 
@@ -56,7 +52,7 @@ public class StockController implements StockControllerDocs {
             @ModelAttribute StockManagerFilter filter,
             @PageableDefault(size = 12, sort = "availableQuantity") Pageable pageable
     ) {
-        return ResponseEntity.ok().body(queryService.findAll(
+        return ResponseEntity.ok().body(commandService.findAll(
                 filter, pageable
         ));
     }
@@ -64,7 +60,7 @@ public class StockController implements StockControllerDocs {
     @Override
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StockResponseDto> findById(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok().body(queryService.findById(id));
+        return ResponseEntity.ok().body(commandService.findById(id));
     }
 
     @Override

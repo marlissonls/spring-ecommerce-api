@@ -1,15 +1,14 @@
 package br.com.springecommerce.sales.order.application.service;
 
 import br.com.springecommerce.customer.customer.application.service.CustomerService;
-import br.com.springecommerce.inventory.stock.application.movement.StockMovementItem;
-import br.com.springecommerce.inventory.stock.application.service.StockCommandService;
+import br.com.springecommerce.inventory.stock.application.dto.StockReservationRequest;
+import br.com.springecommerce.inventory.stock.application.service.StockService;
 import br.com.springecommerce.sales.order.application.contract.OrderCreationData;
 import br.com.springecommerce.sales.order.application.dto.OrderItemResponseDto;
 import br.com.springecommerce.sales.order.application.dto.OrderResponseDto;
 import br.com.springecommerce.sales.order.domain.model.Order;
 import br.com.springecommerce.sales.order.domain.exception.OrderErrors;
 import br.com.springecommerce.sales.order.infrastructure.persistence.repository.OrderRepository;
-import br.com.springecommerce.sales.order.application.snapshot.OrderItemSnapshot;
 import br.com.springecommerce.sales.order.domain.valueobject.OrderItem;
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
 import br.com.springecommerce.shared.pagination.PageResponse;
@@ -30,21 +29,21 @@ public class OrderService {
 
     private final OrderRepository repository;
 
-    private final StockCommandService stockService;
+    private final StockService stockService;
 
     public OrderService(
             OrderRepository repository,
-            StockCommandService stockService,
+            StockService stockService,
             CustomerService customerService
     ) {
         this.repository = repository;
         this.stockService = stockService;
     }
 
-    public OrderResponseDto getOrder(UUID id, UUID userId) {
-        logger.debug("Fetching order for orderId={}, customerId={}", id, userId);
+    public OrderResponseDto getOrder(UUID id, UUID customerId) {
+        logger.debug("Fetching order for orderId={}, customerId={}", id, customerId);
 
-        Order order = repository.findByIdAndCustomerId(id, userId)
+        Order order = repository.findByIdAndCustomerId(id, customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         OrderErrors.Target.ID,
                         OrderErrors.Code.ORDER_NOT_FOUND
@@ -52,17 +51,16 @@ public class OrderService {
 
         List<OrderItemResponseDto> items = repository.findOrderItems(order.getId())
                 .stream()
-                .map(OrderItemSnapshot::new)
                 .map(OrderItemResponseDto::new)
                 .toList();
 
         return new OrderResponseDto(order, items);
     }
 
-    public PageResponse<OrderResponseDto> getOrders(UUID userId, Pageable pageable) {
-        logger.debug("Fetching orders for customerId={}", userId);
+    public PageResponse<OrderResponseDto> getOrders(UUID customerId, Pageable pageable) {
+        logger.debug("Fetching orders for customerId={}", customerId);
 
-        Page<Order> page = repository.findAllByCustomerId(userId, pageable);
+        Page<Order> page = repository.findAllByCustomerId(customerId, pageable);
 
         List<OrderResponseDto> orders = page
                 .map(order -> new OrderResponseDto(order, null))
@@ -83,10 +81,10 @@ public class OrderService {
     }
 
     @Transactional
-    public void cancel(UUID id, UUID userId) {
-        logger.debug("Cancelling order. orderId={}, customerId={}", id, userId);
+    public void cancel(UUID id, UUID customerId) {
+        logger.debug("Cancelling order. orderId={}, customerId={}", id, customerId);
 
-        Order order = repository.findByIdAndCustomerId(id, userId)
+        Order order = repository.findByIdAndCustomerId(id, customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         OrderErrors.Target.ID,
                         OrderErrors.Code.ORDER_NOT_FOUND
@@ -99,10 +97,10 @@ public class OrderService {
         stockService.releaseItems(buildReservationItems(order.getItems()));
     }
 
-    private List<StockMovementItem> buildReservationItems(Set<OrderItem> items) {
+    private List<StockReservationRequest> buildReservationItems(Set<OrderItem> items) {
         return items
                 .stream()
-                .map(item -> new StockMovementItem(
+                .map(item -> new StockReservationRequest(
                         item.getProductId(),
                         item.getQuantity()
                 ))

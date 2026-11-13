@@ -13,7 +13,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpecificationExecutor<Product> {
+public interface ProductRepository
+        extends JpaRepository<Product, UUID>, JpaSpecificationExecutor<Product> {
 
     Optional<Product> findBySlugAndActiveTrue(String slug);
 
@@ -21,34 +22,22 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
 
     Optional<Product> findBySku(String sku);
 
-    @Query("""
-        SELECT new br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot(
-            p.id,
-            p.active,
-            p.price,
-            p.salePrice,
-            s.availableQuantity
-        )
-        FROM Stock s
-        JOIN s.product p
-        WHERE p.id = :id
-           AND p.active
-           AND s.availableQuantity > 0
-    """)
-    Optional<ProductSnapshot> findAvailableProduct(@Param("id") UUID id);
-
     @Modifying
-    @Query("UPDATE Product p " +
-            "SET p.active = false " +
-            "WHERE p.id=:id " +
-            "AND p.active")
+    @Query("""
+        UPDATE Product p
+        SET p.active = false
+        WHERE p.id = :id
+        AND p.active
+    """)
     int deactivate(@Param("id") UUID id);
 
     @Modifying
-    @Query("UPDATE Product p " +
-            "SET p.active = true " +
-            "WHERE p.id=:id " +
-            "AND NOT p.active")
+    @Query("""
+        UPDATE Product p
+        SET p.active = true
+        WHERE p.id = :id
+        AND NOT p.active
+    """)
     int activate(@Param("id") UUID id);
 
     @Query("""
@@ -70,5 +59,23 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     """)
     List<ProductImage> findProductImagesByProductId(
             @Param("productId") UUID productId
+    );
+
+    @Query("""
+        SELECT new br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot(
+            p.id,
+            p.title,
+            pi.url,
+            p.price,
+            p.salePrice,
+            p.active
+        )
+        FROM Product p
+        LEFT JOIN p.images pi
+        WHERE p.id IN :productIds
+        AND (pi.main = true OR pi IS NULL)
+    """)
+    List<ProductSnapshot> findByIdIn(
+            @Param("productIds") List<UUID> productIds
     );
 }

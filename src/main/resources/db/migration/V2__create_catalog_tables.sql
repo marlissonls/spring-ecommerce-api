@@ -76,9 +76,22 @@ CREATE TABLE IF NOT EXISTS product_images (
     position INT NOT NULL DEFAULT 0,
     main BOOLEAN NOT NULL DEFAULT FALSE,
 
-    CONSTRAINT chk_product_images_position CHECK (position >= 0),
+    main_product_id CHAR(36)
+    GENERATED ALWAYS AS (
+        IF(main, product_id, NULL)
+    ) VIRTUAL,
 
-    CONSTRAINT pk_product_images PRIMARY KEY (public_id),
+    CONSTRAINT chk_product_images_position
+    CHECK (position >= 0),
 
-    CONSTRAINT fk_product_images_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+    CONSTRAINT pk_product_images
+    PRIMARY KEY (public_id),
+
+    CONSTRAINT uk_product_images_main
+    UNIQUE (main_product_id),
+
+    CONSTRAINT fk_product_images_product
+    FOREIGN KEY (product_id)
+    REFERENCES products(id)
+    ON DELETE CASCADE
 ) ENGINE=InnoDB;

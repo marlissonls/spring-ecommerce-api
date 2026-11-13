@@ -6,11 +6,9 @@ import br.com.springecommerce.sales.cart.domain.valueobject.CartItem;
 import br.com.springecommerce.sales.cart.domain.exception.CartItemNotFoundException;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.PositiveOrZero;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -31,10 +29,6 @@ public class Cart {
             joinColumns = @JoinColumn(name = "cart_id")
     )
     private Set<CartItem> items = new HashSet<>();
-
-    @PositiveOrZero
-    @Column(name = "subtotal_amount", nullable = false)
-    private BigDecimal subtotalAmount = BigDecimal.ZERO;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -65,7 +59,6 @@ public class Cart {
 
     public void addItem(
             UUID productId,
-            BigDecimal unitPrice,
             Integer quantity
     ) {
         CartItem existingItem = items.stream()
@@ -75,17 +68,12 @@ public class Cart {
 
         if (existingItem != null) {
             existingItem.setQuantity(quantity);
-            existingItem.setUnitPrice(unitPrice);
-
         } else {
             items.add(new CartItem(
                     productId,
-                    unitPrice,
                     quantity
             ));
         }
-
-        recalculateTotals();
     }
 
     public void removeItem(UUID productId) {
@@ -99,18 +87,6 @@ public class Cart {
                     CartErrors.Code.CART_ITEM_NOT_FOUND
             );
         }
-
-        recalculateTotals();
-    }
-
-    private void recalculateTotals() {
-
-        subtotalAmount = items.stream()
-                .map(CartItem::getTotalPrice)
-                .reduce(
-                        BigDecimal.ZERO,
-                        BigDecimal::add
-                );
     }
 
     public UUID getId() {
@@ -123,10 +99,6 @@ public class Cart {
 
     public Set<CartItem> getItems() {
         return Collections.unmodifiableSet(items);
-    }
-
-    public BigDecimal getSubtotalAmount() {
-        return subtotalAmount;
     }
 
     public CartStatus getStatus() {

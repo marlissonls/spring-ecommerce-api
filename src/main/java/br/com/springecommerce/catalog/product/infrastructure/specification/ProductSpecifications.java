@@ -8,6 +8,8 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -127,17 +129,26 @@ public class ProductSpecifications {
                 return null;
             }
 
-            Join<Product, Stock> stock = root.join("stocks");
+            Subquery<Integer> stockSubquery = query.subquery(Integer.class);
+
+            Root<Stock> stock = stockSubquery.from(Stock.class);
+
+            stockSubquery.select(cb.literal(1));
+
+            stockSubquery.where(
+                    cb.equal(stock.get("productId"), root.get("id")),
+                    cb.gt(stock.get("availableQuantity"), 0)
+            );
 
             Predicate isActive = cb.isTrue(root.get("active"));
-            Predicate hasAvailableStock = cb.gt(stock.get("availableQuantity"), 0);
-
-            Predicate isInactive = cb.isFalse(root.get("active"));
-            Predicate hasNoAvailableStock = cb.le(stock.get("availableQuantity"), 0);
+            Predicate hasAvailableStock = cb.exists(stockSubquery);
 
             return availableForSale
                     ? cb.and(isActive, hasAvailableStock)
-                    : cb.or(isInactive, hasNoAvailableStock);
+                    : cb.or(
+                    cb.isFalse(root.get("active")),
+                    cb.not(hasAvailableStock)
+            );
         };
     }
 
@@ -148,11 +159,20 @@ public class ProductSpecifications {
                 return null;
             }
 
-            var stock = root.join("stocks");
+            Subquery<Integer> subquery = query.subquery(Integer.class);
+            Root<Stock> stock = subquery.from(Stock.class);
+
+            subquery.select(cb.literal(1));
+            subquery.where(
+                    cb.equal(stock.get("productId"), root.get("id")),
+                    hasStock
+                            ? cb.gt(stock.get("availableQuantity"), 0)
+                            : cb.le(stock.get("availableQuantity"), 0)
+            );
 
             return hasStock
-                    ? cb.greaterThan(stock.get("availableQuantity"), 0)
-                    : cb.lessThanOrEqualTo(stock.get("availableQuantity"), 0);
+                    ? cb.exists(subquery)
+                    : cb.not(cb.exists(subquery));
         };
     }
 

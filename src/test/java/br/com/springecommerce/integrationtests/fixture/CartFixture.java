@@ -8,8 +8,6 @@ import br.com.springecommerce.sales.cart.infrastructure.persistence.repository.C
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-
 @Component
 public class CartFixture {
 
@@ -35,14 +33,8 @@ public class CartFixture {
         Cart managedCart = repository.findById(cart.getId())
                 .orElseThrow();
 
-        BigDecimal unitPrice = product.getSalePrice() != null
-                && product.getSalePrice().compareTo(product.getPrice()) < 0
-                ? product.getSalePrice()
-                : product.getPrice();
-
         managedCart.addItem(
                 product.getId(),
-                unitPrice,
                 quantity
         );
     }

@@ -2,11 +2,12 @@ package br.com.springecommerce.catalog.product.application.dto;
 
 import br.com.springecommerce.catalog.product.domain.model.Product;
 import br.com.springecommerce.catalog.product.domain.valueobject.ProductImage;
-import br.com.springecommerce.inventory.stock.domain.model.Stock;
+import br.com.springecommerce.inventory.stock.application.snapshot.StockSnapshot;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public record ProductManagerDetailsResponseDto(
@@ -32,7 +33,7 @@ public record ProductManagerDetailsResponseDto(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public ProductManagerDetailsResponseDto(Product product, List<ProductImage> images, Stock stock) {
+    public ProductManagerDetailsResponseDto(Product product, List<ProductImage> images, Optional<StockSnapshot> stock) {
         this(
             product.getId(),
             product.getTitle(),
@@ -43,9 +44,9 @@ public record ProductManagerDetailsResponseDto(
             product.getPrice(),
             product.getSalePrice(),
             product.getCostPrice(),
-            stock.getAvailableQuantity(),
-            stock.getReservedQuantity(),
-            stock.getMinimumQuantity(),
+            stock.map(StockSnapshot::availableQuantity).orElse(null),
+            stock.map(StockSnapshot::reservedQuantity).orElse(null),
+            stock.map(StockSnapshot::minimumQuantity).orElse(null),
             product.getRating(),
             product.getRatingCount(),
             product.getActive(),

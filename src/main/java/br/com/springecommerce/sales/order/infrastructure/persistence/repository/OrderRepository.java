@@ -1,7 +1,7 @@
 package br.com.springecommerce.sales.order.infrastructure.persistence.repository;
 
+import br.com.springecommerce.sales.order.application.snapshot.OrderItemSnapshot;
 import br.com.springecommerce.sales.order.domain.model.Order;
-import br.com.springecommerce.sales.order.infrastructure.persistence.projection.OrderItemProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,17 +27,18 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     Page<Order> findAllByCustomerId(UUID customerId, Pageable pageable);
 
-    @Query(value = """
-        SELECT
-            oi.product_id AS productId,
-            p.title AS productTitle,
-            oi.unit_price AS unitPrice,
-            oi.quantity AS quantity,
-            oi.unit_price * oi.quantity AS totalPrice
-        FROM order_items oi
-        JOIN products p
-            ON p.id = oi.product_id
-        WHERE oi.order_id = :orderId
-    """, nativeQuery = true)
-    List<OrderItemProjection> findOrderItems(@Param("orderId") UUID orderId);
+    @Query("""
+        SELECT new br.com.springecommerce.sales.order.application.snapshot.OrderItemSnapshot(
+            oi.productId,
+            oi.productTitle,
+            oi.productImage,
+            oi.price,
+            oi.quantity,
+            oi.price * oi.quantity
+        )
+        FROM Order o
+        JOIN o.items oi
+        WHERE o.id = :orderId
+    """)
+    List<OrderItemSnapshot> findOrderItems(@Param("orderId") UUID orderId);
 }

@@ -2,7 +2,6 @@ package br.com.springecommerce.integrationtests.tests.sales.cart;
 
 import br.com.springecommerce.catalog.brand.domain.model.Brand;
 import br.com.springecommerce.catalog.category.domain.model.Category;
-import br.com.springecommerce.catalog.product.domain.exception.ProductErrors;
 import br.com.springecommerce.catalog.product.domain.model.Product;
 import br.com.springecommerce.customer.customer.domain.model.Customer;
 import br.com.springecommerce.iam.user.domain.model.User;
@@ -103,7 +102,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void shouldReturnTheExistingActiveCartWithItsItems() {
+    void shouldReturnTheExistingActiveCartWithItems() {
         // GIVEN
         String email = "user@test.com";
         String password = "password";
@@ -164,7 +163,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         assertThat(item.quantity())
                 .isEqualTo(cartItemQuantity);
 
-        assertThat(item.unitPrice())
+        assertThat(item.price())
                 .isEqualByComparingTo(productSalePrice);
 
         assertThat(response.subTotalAmount())
@@ -280,13 +279,8 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         String email = "user@test.com";
         String password = "password";
 
-        BigDecimal productSalePrice = new BigDecimal("100.00");
-        BigDecimal productPrice = new BigDecimal("120.00");
         Integer stockAvailableQuantity = 100;
         Integer cartItemQuantity = 2;
-
-        BigDecimal expectedSubtotal = productSalePrice
-                .multiply(BigDecimal.valueOf(cartItemQuantity));
 
         User user = userFixture
                 .withEmail(email)
@@ -299,14 +293,12 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         Brand brand = brandFixture.create();
 
         Product product = productFixture
-                .withSalePrice(productSalePrice)
-                .withPrice(productPrice)
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
 
         Stock stock = stockFixture
-                .withProduct(product)
+                .withProduct(product.getId())
                 .withAvailableQuantity(stockAvailableQuantity)
                 .create();
 
@@ -332,10 +324,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .findByCustomerIdAndStatus(customer.getId(), CartStatus.ACTIVE)
                 .orElseThrow();
 
-        List<CartItemSnapshot> items = cartRepository.findCartItems(createdCart.getId())
-                .stream()
-                .map(CartItemSnapshot::new)
-                .toList();
+        List<CartItemSnapshot> items = cartRepository.findCartItems(createdCart.getId());
 
         assertThat(createdCart.getCustomerId())
                 .isEqualTo(customer.getId());
@@ -355,12 +344,6 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(item.quantity())
                 .isEqualTo(cartItemQuantity);
-
-        assertThat(item.unitPrice())
-                .isEqualByComparingTo(productSalePrice);
-
-        assertThat(createdCart.getSubtotalAmount())
-                .isEqualByComparingTo(expectedSubtotal);
     }
 
     @Test
@@ -369,13 +352,8 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         String email = "user@test.com";
         String password = "password";
 
-        BigDecimal productSalePrice = new BigDecimal("100.00");
-        BigDecimal productPrice = new BigDecimal("120.00");
         Integer stockAvailableQuantity = 100;
         Integer cartItemQuantity = 2;
-
-        BigDecimal expectedSubtotal = productSalePrice
-                .multiply(BigDecimal.valueOf(cartItemQuantity));
 
         User user = userFixture
                 .withEmail(email)
@@ -388,14 +366,12 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         Brand brand = brandFixture.create();
 
         Product product = productFixture
-                .withSalePrice(productSalePrice)
-                .withPrice(productPrice)
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
 
         stockFixture
-                .withProduct(product)
+                .withProduct(product.getId())
                 .withAvailableQuantity(stockAvailableQuantity)
                 .create();
 
@@ -423,10 +399,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .findById(cart.getId())
                 .orElseThrow();
 
-        List<CartItemSnapshot> items = cartRepository.findCartItems(updatedCart.getId())
-                .stream()
-                .map(CartItemSnapshot::new)
-                .toList();
+        List<CartItemSnapshot> items = cartRepository.findCartItems(updatedCart.getId());
 
         assertThat(updatedCart.getId())
                 .isEqualTo(cart.getId());
@@ -449,12 +422,6 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(item.quantity())
                 .isEqualTo(cartItemQuantity);
-
-        assertThat(item.unitPrice())
-                .isEqualByComparingTo(productSalePrice);
-
-        assertThat(updatedCart.getSubtotalAmount())
-                .isEqualByComparingTo(expectedSubtotal);
     }
 
     @Test
@@ -463,16 +430,9 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         String email = "user@test.com";
         String password = "password";
 
-        BigDecimal initialSalePrice = new BigDecimal("100.00");
-        BigDecimal updatedSalePrice = new BigDecimal("90.00");
-        BigDecimal productPrice = new BigDecimal("120.00");
-
         Integer initialQuantity = 2;
         Integer updatedQuantity = 5;
         Integer stockAvailableQuantity = 100;
-
-        BigDecimal expectedSubtotal = updatedSalePrice
-                .multiply(BigDecimal.valueOf(updatedQuantity));
 
         User user = userFixture
                 .withEmail(email)
@@ -485,21 +445,17 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         Brand brand = brandFixture.create();
 
         Product product = productFixture
-                .withSalePrice(initialSalePrice)
-                .withPrice(productPrice)
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
 
         stockFixture
-                .withProduct(product)
+                .withProduct(product.getId())
                 .withAvailableQuantity(stockAvailableQuantity)
                 .create();
 
         Cart cart = cartFixture.create(customer);
         cartFixture.addProduct(cart, product, initialQuantity);
-
-        productFixture.updateSalePrice(product, updatedSalePrice);
 
         String token = authenticator.authenticate(email, password);
 
@@ -523,10 +479,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .findById(cart.getId())
                 .orElseThrow();
 
-        List<CartItemSnapshot> items = cartRepository.findCartItems(updatedCart.getId())
-                .stream()
-                .map(CartItemSnapshot::new)
-                .toList();
+        List<CartItemSnapshot> items = cartRepository.findCartItems(updatedCart.getId());
 
         assertThat(items)
                 .hasSize(1);
@@ -540,12 +493,6 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(item.quantity())
                 .isEqualTo(updatedQuantity);
-
-        assertThat(item.unitPrice())
-                .isEqualByComparingTo(updatedSalePrice);
-
-        assertThat(updatedCart.getSubtotalAmount())
-                .isEqualByComparingTo(expectedSubtotal);
     }
 
     @Test
@@ -578,7 +525,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .create();
 
         stockFixture
-                .withProduct(product)
+                .withProduct(product.getId())
                 .withAvailableQuantity(stockAvailableQuantity)
                 .create();
 
@@ -614,7 +561,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void shouldThrowWhenProductIsNotAvailable() {
+    void shouldThrowAddProductAndStockIsNotAvailable() {
         // GIVEN
         String email = "user@test.com";
         String password = "password";
@@ -661,10 +608,10 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .isEqualTo(ErrorCode.NOT_FOUND.name());
 
         assertThat(response.errors().get(0).target())
-                .isEqualTo(ProductErrors.Target.ID);
+                .isEqualTo(StockErrors.Target.PRODUCT_ID);
 
         assertThat(response.errors().get(0).code())
-                .isEqualTo(ProductErrors.Code.PRODUCT_NOT_FOUND);
+                .isEqualTo(StockErrors.Code.STOCK_NOT_FOUND);
     }
 
     @Test
@@ -672,9 +619,6 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         // GIVEN
         String email = "user@test.com";
         String password = "password";
-
-        BigDecimal productSalePrice = new BigDecimal("100.00");
-        BigDecimal productPrice = new BigDecimal("120.00");
 
         Integer cartItemQuantity = 2;
 
@@ -689,8 +633,6 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         Brand brand = brandFixture.create();
 
         Product product = productFixture
-                .withSalePrice(productSalePrice)
-                .withPrice(productPrice)
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
@@ -780,7 +722,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void shouldThrowWhenWhenRemoveProductAndActiveCartDoesNotExist() {
+    void shouldThrowWhenRemoveProductAndActiveCartDoesNotExist() {
         // GIVEN
         String email = "user@test.com";
         String password = "password";
@@ -824,16 +766,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         String email = "user@test.com";
         String password = "password";
 
-        String firstProductTitle = "Fist Product Teste";
-        String firstProductSlug = "first-product-slug";
-        String firstProductSku = "SKU-001";
-        String firstProductBarcode = "7891234567890";
         Integer firstProductQuantity = 2;
-
-        String secondProductTitle = "Second Product Teste";
-        String secondProductSlug = "second-product-slug";
-        String secondProductSku = "SKU-002";
-        String secondProductBarcode = "7891234567891";
         Integer secondProductQuantity = 3;
 
         User user = userFixture
@@ -847,21 +780,23 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         Brand brand = brandFixture.create();
 
         Product firstProduct = productFixture
-                .withTitle(firstProductTitle)
-                .withSlug(firstProductSlug)
-                .withSku(firstProductSku)
-                .withBarcode(firstProductBarcode)
+                .withTitle("Primeiro Produto")
+                .withSlug("primeiro-produto")
+                .withBarcode("7891234567890")
+                .withSku("SKU-01")
                 .withCategory(category)
                 .withBrand(brand)
+                .withImagePublicId("products/barraca-camping-para-3-pessoas/ciyya0m68tobdemmgmkw")
                 .create();
 
         Product secondProduct = productFixture
-                .withTitle(secondProductTitle)
-                .withSlug(secondProductSlug)
-                .withSku(secondProductSku)
-                .withBarcode(secondProductBarcode)
+                .withTitle("Segundo Produto")
+                .withSlug("segundo-produto")
+                .withBarcode("5551234567555")
+                .withSku("SKU-02")
                 .withCategory(category)
                 .withBrand(brand)
+                .withImagePublicId("products/barraca-camping-para-5-pessoas/yihja0m25tobdetygm78")
                 .create();
 
         Cart cart = cartFixture.create(customer);
@@ -904,9 +839,6 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         String email = "user@test.com";
         String password = "password";
 
-        BigDecimal productSalePrice = new BigDecimal("100.00");
-        BigDecimal productPrice = new BigDecimal("120.00");
-
         Integer cartItemQuantity = 2;
 
         User user = userFixture
@@ -920,8 +852,6 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         Brand brand = brandFixture.create();
 
         Product product = productFixture
-                .withSalePrice(productSalePrice)
-                .withPrice(productPrice)
                 .withCategory(category)
                 .withBrand(brand)
                 .create();

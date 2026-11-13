@@ -12,11 +12,11 @@ public record CartResponseDto(
         BigDecimal subTotalAmount,
         List<CartItemResponseDto> items
 ) {
-    public CartResponseDto(Cart cart, List<CartItemResponseDto> items) {
+    public CartResponseDto(Cart cart, BigDecimal subTotalAmount, List<CartItemResponseDto> items) {
         this(
                 cart.getId(),
                 cart.getCustomerId(),
-                cart.getSubtotalAmount(),
+                subTotalAmount,
                 items
         );
     }
