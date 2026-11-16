@@ -8,6 +8,7 @@ import br.com.springecommerce.inventory.stock.domain.exception.InsufficientStock
 import br.com.springecommerce.inventory.stock.domain.exception.StockErrors;
 import br.com.springecommerce.sales.cart.application.dto.CartAddProductRequestDto;
 import br.com.springecommerce.sales.cart.application.dto.CartItemResponseDto;
+import br.com.springecommerce.sales.cart.application.dto.CartRemoveProductsRequestDto;
 import br.com.springecommerce.sales.cart.application.dto.CartResponseDto;
 import br.com.springecommerce.sales.cart.application.service.CartService;
 import br.com.springecommerce.sales.cart.application.snapshot.CartItemSnapshot;
@@ -344,7 +345,7 @@ class CartServiceTest {
 
 
     @Test
-    void shouldRemoveProductSuccessfully() {
+    void shouldRemoveProductsSuccessfully() {
         // Given
         UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
@@ -356,7 +357,7 @@ class CartServiceTest {
                 .thenReturn(Optional.of(cart));
 
         // When
-        cartService.removeProduct(customerId, productId);
+        cartService.removeProducts(customerId, new CartRemoveProductsRequestDto(List.of(productId)));
 
         // Then
         verify(repository).findByCustomerIdAndStatus(
@@ -382,7 +383,7 @@ class CartServiceTest {
         // When / Then
         assertThrows(
                 CartItemNotFoundException.class,
-                () -> cartService.removeProduct(customerId, productId)
+                () -> cartService.removeProducts(customerId, new CartRemoveProductsRequestDto(List.of(productId)))
         );
 
         verify(repository).findByCustomerIdAndStatus(
@@ -393,7 +394,7 @@ class CartServiceTest {
 
 
     @Test
-    void shouldThrowWhenWhenRemoveProductAndActiveCartDoesNotExist() {
+    void shouldThrowWhenWhenRemoveProductsAndActiveCartDoesNotExist() {
         // Given
         UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
@@ -404,7 +405,7 @@ class CartServiceTest {
         // When / Then
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> cartService.removeProduct(customerId, productId)
+                () -> cartService.removeProducts(customerId, new CartRemoveProductsRequestDto(List.of(productId)))
         );
 
         verify(repository).findByCustomerIdAndStatus(
@@ -415,7 +416,7 @@ class CartServiceTest {
 
 
     @Test
-    void shouldRemoveProductAndKeepOtherItems() {
+    void shouldRemoveProductsAndKeepOtherItems() {
         // Given
         UUID customerId = UUID.randomUUID();
         UUID productToRemoveId = UUID.randomUUID();
@@ -429,7 +430,7 @@ class CartServiceTest {
                 .thenReturn(Optional.of(cart));
 
         // When
-        cartService.removeProduct(customerId, productToRemoveId);
+        cartService.removeProducts(customerId, new CartRemoveProductsRequestDto(List.of(productToRemoveId)));
 
         // Then
         verify(repository).findByCustomerIdAndStatus(

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -95,7 +96,7 @@ class CartTests {
         cart.addItem(secondProductId, 3);
 
         // When
-        cart.removeItem(firstProductId);
+        cart.removeItems(List.of(firstProductId));
 
         // Then
         assertEquals(1, cart.getItems().size());
@@ -113,7 +114,7 @@ class CartTests {
         // When / Then
         assertThrows(
                 CartItemNotFoundException.class,
-                () -> cart.removeItem(productId)
+                () -> cart.removeItems(List.of(productId))
         );
     }
 
@@ -125,7 +126,7 @@ class CartTests {
         cart.addItem(productId, 2);
 
         // When
-        cart.removeItem(productId);
+        cart.removeItems(List.of(productId));
 
         // Then
         assertTrue(cart.getItems().isEmpty());

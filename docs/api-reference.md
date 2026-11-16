@@ -123,11 +123,11 @@ Stock updates use conditional database operations to help preserve stock quantit
 
 ### Cart
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/api/v1/carts` | Retrieve the authenticated user's shopping cart |
-| POST | `/api/v1/carts/items` | Add a product to the authenticated user's shopping cart |
-| DELETE | `/api/v1/carts/items/product/{productId}` | Remove a product from the authenticated user's shopping cart by product ID |
+| Method | Endpoint | Description                                                                                     |
+| --- | --- |-------------------------------------------------------------------------------------------------|
+| GET | `/api/v1/carts` | Retrieve the authenticated user's shopping cart                                                 |
+| POST | `/api/v1/carts/items` | Add a product to the authenticated user's shopping cart                                         |
+| DELETE | `/api/v1/carts/items` | Remove one or more product from the authenticated user's shopping cart by a list of product IDs |
 
 ### Checkout
 

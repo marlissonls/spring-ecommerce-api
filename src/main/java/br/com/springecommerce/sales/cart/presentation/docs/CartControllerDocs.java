@@ -2,6 +2,7 @@ package br.com.springecommerce.sales.cart.presentation.docs;
 
 import br.com.springecommerce.iam.security.principal.AuthenticatedUser;
 import br.com.springecommerce.sales.cart.application.dto.CartAddProductRequestDto;
+import br.com.springecommerce.sales.cart.application.dto.CartRemoveProductsRequestDto;
 import br.com.springecommerce.sales.cart.application.dto.CartResponseDto;
 import br.com.springecommerce.shared.exception.response.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
 import java.util.UUID;
@@ -55,7 +57,7 @@ public interface CartControllerDocs {
     )
     ResponseEntity<Void> addProduct(
             AuthenticatedUser auth,
-            CartAddProductRequestDto dto
+            @Valid CartAddProductRequestDto dto
     );
 
 
@@ -76,9 +78,9 @@ public interface CartControllerDocs {
                     @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
             }
     )
-    ResponseEntity<Void> removeProduct(
+    ResponseEntity<Void> removeProducts(
             AuthenticatedUser auth,
-            UUID productId
+            @Valid CartRemoveProductsRequestDto dto
     );
 }
 

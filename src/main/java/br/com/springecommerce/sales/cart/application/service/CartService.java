@@ -5,6 +5,7 @@ import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapsh
 import br.com.springecommerce.inventory.stock.application.service.StockService;
 import br.com.springecommerce.sales.cart.application.dto.CartAddProductRequestDto;
 import br.com.springecommerce.sales.cart.application.dto.CartItemResponseDto;
+import br.com.springecommerce.sales.cart.application.dto.CartRemoveProductsRequestDto;
 import br.com.springecommerce.sales.cart.application.dto.CartResponseDto;
 import br.com.springecommerce.sales.cart.application.snapshot.CartItemSnapshot;
 import br.com.springecommerce.sales.cart.application.snapshot.CartSnapshot;
@@ -142,16 +143,16 @@ public class CartService {
     }
 
     @Transactional
-    public void removeProduct(UUID customerId, UUID productId) {
-        logger.debug("Removing product from cart. customerId={}, productId={}",
-                customerId, productId);
+    public void removeProducts(UUID customerId, CartRemoveProductsRequestDto dto) {
+        logger.debug("Removing product from cart. customerId={}, productIds={}",
+                customerId, dto);
 
         Cart cart = findOpenCartOrThrow(customerId);
 
-        cart.removeItem(productId);
+        cart.removeItems(dto.productIds());
 
-        logger.info("Product removed from cart successfully. cartId={}, customerId={}, productId={}",
-                cart.getId(), customerId, productId);
+        logger.info("Product removed from cart successfully. cartId={}, customerId={}, productIds={}",
+                cart.getId(), customerId, dto);
     }
 
     public void markAsConverted(Cart cart) {

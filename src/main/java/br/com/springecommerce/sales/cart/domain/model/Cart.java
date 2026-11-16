@@ -76,9 +76,13 @@ public class Cart {
         }
     }
 
-    public void removeItem(UUID productId) {
+    public void removeItems(List<UUID> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return;
+        }
+
         boolean removed = items.removeIf(
-                item -> item.getProductId().equals(productId)
+                item -> productIds.contains(item.getProductId())
         );
 
         if (!removed) {

@@ -2,6 +2,7 @@ package br.com.springecommerce.sales.cart.presentation.http;
 
 import br.com.springecommerce.iam.security.principal.AuthenticatedUser;
 import br.com.springecommerce.sales.cart.application.dto.CartAddProductRequestDto;
+import br.com.springecommerce.sales.cart.application.dto.CartRemoveProductsRequestDto;
 import br.com.springecommerce.sales.cart.application.dto.CartResponseDto;
 import br.com.springecommerce.sales.cart.application.service.CartService;
 import br.com.springecommerce.sales.cart.presentation.docs.CartControllerDocs;
@@ -10,8 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/carts")
@@ -34,20 +33,19 @@ public class CartController implements CartControllerDocs {
     @PostMapping(value = "/items", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> addProduct(
             @AuthenticationPrincipal AuthenticatedUser auth,
-            @RequestBody @Valid CartAddProductRequestDto dto
+            @RequestBody CartAddProductRequestDto dto
     ) {
         service.addProduct(auth.getCustomerId(), dto);
 
         return ResponseEntity.noContent().build();
     }
 
-    @Override
-    @DeleteMapping("/items/product/{productId}")
-    public ResponseEntity<Void> removeProduct(
+    @DeleteMapping(value = "/items", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> removeProducts(
             @AuthenticationPrincipal AuthenticatedUser auth,
-            @PathVariable("productId") UUID productId
+            @RequestBody CartRemoveProductsRequestDto dto
     ) {
-        service.removeProduct(auth.getCustomerId(), productId);
+        service.removeProducts(auth.getCustomerId(), dto);
 
         return ResponseEntity.noContent().build();
     }
