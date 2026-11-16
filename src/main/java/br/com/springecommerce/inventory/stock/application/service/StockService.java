@@ -14,6 +14,7 @@ import br.com.springecommerce.inventory.stock.presentation.filter.StockManagerFi
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
 import br.com.springecommerce.shared.pagination.PageResponse;
 import jakarta.validation.Valid;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -86,17 +87,42 @@ public class StockService {
     public StockResponseDto create(StockCreateDto dto) {
         logger.debug("Creating stock. productId={}", dto.productId());
 
-        Stock stock = Stock.createFrom(
+        Stock saved = saveStock(
                 dto.productId(),
                 dto.availableQuantity(),
                 dto.minimumQuantity()
         );
 
-        Stock saved = repository.save(stock);
-
         logger.info("Stock created successfully. id={}, productId={}", saved.getId(), saved.getProductId());
 
         return new StockResponseDto(saved);
+    }
+
+    @Transactional
+    public void createFromProduct(
+            UUID productId,
+            Integer availableQuantity,
+            Integer minimumQuantity
+    ) {
+        saveStock(
+                productId,
+                availableQuantity,
+                minimumQuantity
+        );
+    }
+
+    private @NonNull Stock saveStock(
+            UUID productId,
+            Integer availableQuantity,
+            Integer minimumQuantity
+    ) {
+        Stock stock = Stock.createFrom(
+                productId,
+                availableQuantity,
+                minimumQuantity
+        );
+
+        return repository.save(stock);
     }
 
     @Transactional

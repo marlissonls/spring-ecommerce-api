@@ -35,5 +35,9 @@ public record ProductCreateDto(
         UUID categoryId,
 
         @NotNull(message = ProductErrors.Code.PRODUCT_BRAND_REQUIRED)
-        UUID brandId
+        UUID brandId,
+
+        Integer initialStock,
+
+        Integer minimumStock
 ) {}

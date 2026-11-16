@@ -189,6 +189,14 @@ public class ProductService {
 
             Product created = repository.save(product);
 
+            if (dto.initialStock() != null && dto.minimumStock() != null) {
+                stockService.createFromProduct(
+                        created.getId(),
+                        dto.initialStock(),
+                        dto.minimumStock()
+                );
+            }
+
             logger.info("Product created successfully. product title={}", created.getTitle());
 
             return new ProductResponseDto(created);
@@ -383,6 +391,8 @@ public class ProductService {
         Product product = findEntityById(id);
 
         product.addImages(images);
+
+        product.activate();
     }
 
 //    @Transactional

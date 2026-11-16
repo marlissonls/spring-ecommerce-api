@@ -69,10 +69,10 @@ public class Product {
     private Integer ratingCount = 0;
 
     @Column(nullable = false)
-    private Boolean active = true;
+    private Boolean active = Boolean.FALSE;
 
     @Column(nullable = false)
-    private Boolean featured = false;
+    private Boolean featured = Boolean.FALSE;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -185,6 +185,10 @@ public class Product {
 
             images.add(productImage);
         }
+    }
+
+    public void activate() {
+        active = Boolean.TRUE;
     }
 
     public UUID getId() {
