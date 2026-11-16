@@ -28,7 +28,7 @@ public class Brand {
     private String description;
 
     @Column(nullable = false)
-    private Boolean active = false;
+    private Boolean active = Boolean.TRUE;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

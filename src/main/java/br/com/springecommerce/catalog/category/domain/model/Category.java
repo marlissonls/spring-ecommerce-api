@@ -29,7 +29,7 @@ public class Category {
     private String description;
 
     @Column(nullable = false)
-    private Boolean active = false;
+    private Boolean active = Boolean.TRUE;
 
     @Column(name = "image_url", length = 2048)
     private String imageUrl;
