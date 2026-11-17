@@ -98,6 +98,12 @@ public class UserCommandService {
 
         User savedUser = repository.save(user);
 
+        CustomerCreateFromUser customerData = new CustomerCreateFromUser(
+                dto.name(), dto.cpf(), null, null
+        );
+
+        customerService.createFromUser(user.getId(), customerData);
+
         logger.info("User employee created successfully. userId={}, roles={}",
                 savedUser.getId(), dto.roleIds());
 
