@@ -1,9 +1,11 @@
 package br.com.springecommerce.unittests.sales.cart.domain.model;
 
 import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot;
+import br.com.springecommerce.inventory.stock.application.snapshot.StockSnapshot;
 import br.com.springecommerce.sales.cart.application.snapshot.CartItemSnapshot;
 import br.com.springecommerce.sales.cart.domain.service.CartCalculator;
 import br.com.springecommerce.unittests.sales.support.ProductSnapshotTestDataBuilder;
+import br.com.springecommerce.unittests.sales.support.StockSnapshotTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,9 +43,14 @@ class CartCalculatorTests {
                 .withPrice(new BigDecimal("100.00"))
                 .build();
 
+        StockSnapshot stock = StockSnapshotTestDataBuilder
+                .aStock()
+                .withProductId(product.id())
+                .build();
+
         // When
         Optional<BigDecimal> result =
-                cartCalculator.calculateItemTotal(item, product);
+                cartCalculator.calculateItemTotal(item, product, stock);
 
         // Then
         assertTrue(result.isPresent());
@@ -53,9 +60,6 @@ class CartCalculatorTests {
     @Test
     void shouldCalculateSubtotalWithMultipleProducts() {
         // Given
-        UUID firstProductId = UUID.randomUUID();
-        UUID secondProductId = UUID.randomUUID();
-
         ProductSnapshot firstProduct = ProductSnapshotTestDataBuilder
                 .aProduct()
                 .withTitle("First Product")
@@ -68,19 +72,34 @@ class CartCalculatorTests {
                 .withPrice(new BigDecimal("50.00"))
                 .build();
 
+        StockSnapshot firstProductStock = StockSnapshotTestDataBuilder
+                .aStock()
+                .withProductId(firstProduct.id())
+                .build();
+
+        StockSnapshot secondProductStock = StockSnapshotTestDataBuilder
+                .aStock()
+                .withProductId(secondProduct.id())
+                .build();
+
         List<CartItemSnapshot> items = List.of(
-                new CartItemSnapshot(firstProductId, 2),
-                new CartItemSnapshot(secondProductId, 3)
+                new CartItemSnapshot(firstProduct.id(), 2),
+                new CartItemSnapshot(secondProduct.id(), 3)
         );
 
         Map<UUID, ProductSnapshot> products = Map.of(
-                firstProductId, firstProduct,
-                secondProductId, secondProduct
+                firstProduct.id(), firstProduct,
+                secondProduct.id(), secondProduct
+        );
+
+        Map<UUID, StockSnapshot> stocks = Map.of(
+                firstProductStock.productId(), firstProductStock,
+                secondProductStock.productId(), secondProductStock
         );
 
         // When
         BigDecimal subtotal =
-                cartCalculator.calculateSubtotal(items, products);
+                cartCalculator.calculateSubtotal(items, products, stocks);
 
         // Then
         assertEquals(new BigDecimal("350.00"), subtotal);
@@ -91,6 +110,7 @@ class CartCalculatorTests {
         // When
         BigDecimal subtotal = cartCalculator.calculateSubtotal(
                 List.of(),
+                Map.of(),
                 Map.of()
         );
 
@@ -101,9 +121,6 @@ class CartCalculatorTests {
     @Test
     void shouldIgnoreInactiveProductsWhenCalculatingSubtotal() {
         // Given
-        UUID activeProductId = UUID.randomUUID();
-        UUID inactiveProductId = UUID.randomUUID();
-
         ProductSnapshot activeProduct = ProductSnapshotTestDataBuilder
                 .aProduct()
                 .withTitle("Active Product")
@@ -118,19 +135,34 @@ class CartCalculatorTests {
                 .withActive(false)
                 .build();
 
+        StockSnapshot activeProductStock = StockSnapshotTestDataBuilder
+                .aStock()
+                .withProductId(activeProduct.id())
+                .build();
+
+        StockSnapshot inactiveProductStock = StockSnapshotTestDataBuilder
+                .aStock()
+                .withProductId(inactiveProduct.id())
+                .build();
+
         List<CartItemSnapshot> items = List.of(
-                new CartItemSnapshot(activeProductId, 2),
-                new CartItemSnapshot(inactiveProductId, 3)
+                new CartItemSnapshot(activeProduct.id(), 2),
+                new CartItemSnapshot(inactiveProduct.id(), 3)
         );
 
         Map<UUID, ProductSnapshot> products = Map.of(
-                activeProductId, activeProduct,
-                inactiveProductId, inactiveProduct
+                activeProduct.id(), activeProduct,
+                inactiveProduct.id(), inactiveProduct
+        );
+
+        Map<UUID, StockSnapshot> stocks = Map.of(
+                activeProductStock.productId(), activeProductStock,
+                inactiveProductStock.productId(), inactiveProductStock
         );
 
         // When
         BigDecimal subtotal =
-                cartCalculator.calculateSubtotal(items, products);
+                cartCalculator.calculateSubtotal(items, products, stocks);
 
         // Then
         assertEquals(new BigDecimal("200.00"), subtotal);
@@ -147,7 +179,7 @@ class CartCalculatorTests {
 
         // When
         BigDecimal subtotal =
-                cartCalculator.calculateSubtotal(items, Map.of());
+                cartCalculator.calculateSubtotal(items, Map.of(), Map.of());
 
         // Then
         assertEquals(BigDecimal.ZERO, subtotal);
@@ -167,9 +199,14 @@ class CartCalculatorTests {
                 .withActive(false)
                 .build();
 
+        StockSnapshot stock = StockSnapshotTestDataBuilder
+                .aStock()
+                .withProductId(product.id())
+                .build();
+
         // When
         Optional<BigDecimal> result =
-                cartCalculator.calculateItemTotal(item, product);
+                cartCalculator.calculateItemTotal(item, product, stock);
 
         // Then
         assertTrue(result.isEmpty());
@@ -185,7 +222,7 @@ class CartCalculatorTests {
 
         // When
         Optional<BigDecimal> result =
-                cartCalculator.calculateItemTotal(item, null);
+                cartCalculator.calculateItemTotal(item, null, null);
 
         // Then
         assertTrue(result.isEmpty());

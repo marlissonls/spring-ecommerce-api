@@ -4,6 +4,7 @@ import br.com.springecommerce.catalog.product.application.service.ProductService
 import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot;
 import br.com.springecommerce.catalog.product.domain.exception.ProductErrors;
 import br.com.springecommerce.inventory.stock.application.service.StockService;
+import br.com.springecommerce.inventory.stock.application.snapshot.StockSnapshot;
 import br.com.springecommerce.inventory.stock.domain.exception.InsufficientStockException;
 import br.com.springecommerce.inventory.stock.domain.exception.StockErrors;
 import br.com.springecommerce.sales.cart.application.dto.CartAddProductRequestDto;
@@ -21,11 +22,13 @@ import br.com.springecommerce.sales.cart.domain.valueobject.CartItem;
 import br.com.springecommerce.sales.cart.infrastructure.persistence.repository.CartRepository;
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
 import br.com.springecommerce.unittests.sales.support.ProductSnapshotTestDataBuilder;
+import br.com.springecommerce.unittests.sales.support.StockSnapshotTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -43,7 +46,7 @@ class CartServiceTest {
     @Mock
     private CartRepository repository;
 
-    @Mock
+    @Spy
     private CartCalculator cartCalculator;
 
     @Mock
@@ -84,6 +87,10 @@ class CartServiceTest {
                 .withId(productId)
                 .build();
 
+        StockSnapshot stock = StockSnapshotTestDataBuilder.aStock()
+                .withProductId(productId)
+                .build();
+
         BigDecimal itemTotal = new BigDecimal("200.00");
         BigDecimal subtotal = new BigDecimal("200.00");
 
@@ -96,12 +103,16 @@ class CartServiceTest {
         when(productService.findSnapshotsByIdIn(List.of(productId)))
                 .thenReturn(List.of(product));
 
+        when(stockService.findSnapshotsByProductIdIn(List.of(productId)))
+                .thenReturn(List.of(stock));
+
         when(cartCalculator.calculateSubtotal(
                 List.of(cartItemSnapshot),
-                Map.of(productId, product)
+                Map.of(productId, product),
+                Map.of(productId, stock)
         )).thenReturn(subtotal);
 
-        when(cartCalculator.calculateItemTotal(cartItemSnapshot, product))
+        when(cartCalculator.calculateItemTotal(cartItemSnapshot, product, stock))
                 .thenReturn(Optional.of(itemTotal));
 
         // When
@@ -128,6 +139,7 @@ class CartServiceTest {
         );
         verify(repository).findCartItems(cart.getId());
         verify(productService).findSnapshotsByIdIn(List.of(productId));
+        verify(stockService).findSnapshotsByProductIdIn(List.of(productId));
     }
 
     @Test
@@ -155,6 +167,7 @@ class CartServiceTest {
 
         verify(repository, never()).findCartItems(any());
         verifyNoInteractions(productService);
+        verifyNoInteractions(stockService);
     }
 
     @Test

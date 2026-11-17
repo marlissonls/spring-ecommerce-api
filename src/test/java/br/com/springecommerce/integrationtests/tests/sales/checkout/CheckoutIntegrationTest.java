@@ -149,8 +149,10 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
+
         Stock stock = stockFixture
-                .withProduct(product.getId())
+                .withProductId(product.getId())
                 .withAvailableQuantity(stockAvailableQuantity)
                 .create();
 
@@ -305,8 +307,10 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
+
         Stock stock = stockFixture
-                .withProduct(product.getId())
+                .withProductId(product.getId())
                 .create();
 
         Cart cart = cartFixture.create(customer);
@@ -358,8 +362,10 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
+
         Stock stock = stockFixture
-                .withProduct(product.getId())
+                .withProductId(product.getId())
                 .withAvailableQuantity(stockAvailableQuantityBeforeAddToCart)
                 .create();
 
@@ -412,8 +418,10 @@ public class CheckoutIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
+
         Stock stock = stockFixture
-                .withProduct(product.getId())
+                .withProductId(product.getId())
                 .withAvailableQuantity(stockAvailableQuantityBeforeAddToCart)
                 .create();
 

@@ -13,6 +13,7 @@ import br.com.springecommerce.integrationtests.support.TestAuthenticator;
 import br.com.springecommerce.inventory.stock.domain.exception.StockErrors;
 import br.com.springecommerce.inventory.stock.domain.model.Stock;
 import br.com.springecommerce.sales.cart.application.dto.CartAddProductRequestDto;
+import br.com.springecommerce.sales.cart.application.dto.CartRemoveProductsRequestDto;
 import br.com.springecommerce.sales.cart.application.dto.CartResponseDto;
 import br.com.springecommerce.sales.cart.application.snapshot.CartItemSnapshot;
 import br.com.springecommerce.sales.cart.domain.exception.CartErrors;
@@ -127,6 +128,11 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .withPrice(productPrice)
                 .withCategory(category)
                 .withBrand(brand)
+                .create();
+        productFixture.activate(product);
+
+        Stock stock = stockFixture
+                .withProductId(product.getId())
                 .create();
 
         Cart cart = cartFixture.create(customer);
@@ -296,9 +302,10 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
 
         Stock stock = stockFixture
-                .withProduct(product.getId())
+                .withProductId(product.getId())
                 .withAvailableQuantity(stockAvailableQuantity)
                 .create();
 
@@ -369,9 +376,10 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
 
         stockFixture
-                .withProduct(product.getId())
+                .withProductId(product.getId())
                 .withAvailableQuantity(stockAvailableQuantity)
                 .create();
 
@@ -448,9 +456,10 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
 
         stockFixture
-                .withProduct(product.getId())
+                .withProductId(product.getId())
                 .withAvailableQuantity(stockAvailableQuantity)
                 .create();
 
@@ -523,9 +532,10 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
 
         stockFixture
-                .withProduct(product.getId())
+                .withProductId(product.getId())
                 .withAvailableQuantity(stockAvailableQuantity)
                 .create();
 
@@ -582,6 +592,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
 
         String token = authenticator.authenticate(email, password);
 
@@ -636,6 +647,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
 
         Cart cart = cartFixture.create(customer);
         cartFixture.addProduct(cart, product, cartItemQuantity);
@@ -646,7 +658,9 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         given(specification)
                 .auth()
                 .oauth2(token)
-                .delete("/items/product/{productId}", product.getId())
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .body(new CartRemoveProductsRequestDto(List.of(product.getId())))
+                .delete("/items")
                 .then()
                 .statusCode(204);
 
@@ -694,6 +708,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
 
         Cart cart = cartFixture.create(customer);
 
@@ -703,7 +718,9 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         ExceptionResponse response = given(specification)
                 .auth()
                 .oauth2(token)
-                .delete("/items/product/{productId}", product.getId())
+                .body(new CartRemoveProductsRequestDto(List.of(product.getId())))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .delete("/items")
                 .then()
                 .statusCode(404)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -742,7 +759,9 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         ExceptionResponse response = given(specification)
                 .auth()
                 .oauth2(token)
-                .delete("/items/product/{productId}", productId)
+                .body(new CartRemoveProductsRequestDto(List.of(productId)))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .delete("/items")
                 .then()
                 .statusCode(404)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -809,7 +828,9 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         given(specification)
                 .auth()
                 .oauth2(token)
-                .delete("/items/product/{productId}", firstProduct.getId())
+                .body(new CartRemoveProductsRequestDto(List.of(firstProduct.getId())))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .delete("/items")
                 .then()
                 .statusCode(204);
 
@@ -855,6 +876,7 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
                 .withCategory(category)
                 .withBrand(brand)
                 .create();
+        productFixture.activate(product);
 
         Cart cart = cartFixture.create(customer);
         cartFixture.addProduct(cart, product, cartItemQuantity);
@@ -865,7 +887,9 @@ public class CartIntegrationTest extends AbstractIntegrationTest {
         given(specification)
                 .auth()
                 .oauth2(token)
-                .delete("/items/product/{productId}", product.getId())
+                .body(new CartRemoveProductsRequestDto(List.of(product.getId())))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .delete("/items")
                 .then()
                 .statusCode(204);
 

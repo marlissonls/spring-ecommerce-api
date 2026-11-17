@@ -137,7 +137,7 @@ public class ProductFixture {
     }
 
     public void activate(Product product) {
-        product.setActive(false);
+        product.activate();
         repository.save(product);
     }
 

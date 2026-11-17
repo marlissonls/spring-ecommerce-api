@@ -19,7 +19,7 @@ public class StockFixture {
         this.repository = repository;
     }
 
-    public StockFixture withProduct(UUID productId) {
+    public StockFixture withProductId(UUID productId) {
         this.productId = productId;
         return this;
     }
