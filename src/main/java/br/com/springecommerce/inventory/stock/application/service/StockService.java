@@ -4,6 +4,7 @@ import br.com.springecommerce.inventory.stock.application.dto.StockAvailableQuan
 import br.com.springecommerce.inventory.stock.application.dto.StockCreateDto;
 import br.com.springecommerce.inventory.stock.application.dto.StockMinimumQuantityUpdateDto;
 import br.com.springecommerce.inventory.stock.application.dto.StockResponseDto;
+import br.com.springecommerce.inventory.stock.application.snapshot.StockSnapshot;
 import br.com.springecommerce.inventory.stock.domain.model.Stock;
 import br.com.springecommerce.inventory.stock.application.dto.StockReservationRequest;
 import br.com.springecommerce.inventory.stock.domain.exception.StockErrors;
@@ -72,6 +73,14 @@ public class StockService {
 
     public List<Stock> findByProductIdIn(List<UUID> ids) {
         return repository.findByProductIdIn(ids);
+    }
+
+    public List<StockSnapshot> findSnapshotsByProductIdIn(List<UUID> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return List.of();
+        }
+
+        return repository.findSnapshotsByProductIdIn(productIds);
     }
 
     public void validateAvailableStock(UUID productId, Integer requestedQuantity) {

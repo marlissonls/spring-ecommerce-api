@@ -93,7 +93,7 @@ class CartServiceTest {
         when(repository.findCartItems(cart.getId()))
                 .thenReturn(List.of(cartItemSnapshot));
 
-        when(productService.findByIdIn(List.of(productId)))
+        when(productService.findSnapshotsByIdIn(List.of(productId)))
                 .thenReturn(List.of(product));
 
         when(cartCalculator.calculateSubtotal(
@@ -127,7 +127,7 @@ class CartServiceTest {
                 CartStatus.ACTIVE
         );
         verify(repository).findCartItems(cart.getId());
-        verify(productService).findByIdIn(List.of(productId));
+        verify(productService).findSnapshotsByIdIn(List.of(productId));
     }
 
     @Test

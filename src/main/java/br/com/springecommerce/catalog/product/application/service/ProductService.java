@@ -260,7 +260,7 @@ public class ProductService {
         product.validateActive();
     }
 
-    public List<ProductSnapshot> findByIdIn(List<UUID> ids) {
+    public List<ProductSnapshot> findSnapshotsByIdIn(List<UUID> ids) {
         return repository.findByIdIn(ids);
     }
 

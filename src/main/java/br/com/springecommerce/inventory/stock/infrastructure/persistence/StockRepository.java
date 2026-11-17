@@ -1,5 +1,6 @@
 package br.com.springecommerce.inventory.stock.infrastructure.persistence;
 
+import br.com.springecommerce.inventory.stock.application.snapshot.StockSnapshot;
 import br.com.springecommerce.inventory.stock.domain.model.Stock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -88,4 +89,17 @@ public interface StockRepository extends JpaRepository<Stock, UUID>, JpaSpecific
     );
 
     List<Stock> findByProductIdIn(List<UUID> ids);
+
+    @Query("""
+        SELECT new br.com.springecommerce.inventory.stock.application.snapshot.StockSnapshot(
+            s.id,
+            s.productId,
+            s.availableQuantity,
+            s.reservedQuantity,
+            s.minimumQuantity
+        )
+        FROM Stock s
+        WHERE s.productId IN :productIds
+    """)
+    List<StockSnapshot> findSnapshotsByProductIdIn(@Param("productIds") List<UUID> productIds);
 }

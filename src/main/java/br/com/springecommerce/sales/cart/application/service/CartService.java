@@ -3,6 +3,7 @@ package br.com.springecommerce.sales.cart.application.service;
 import br.com.springecommerce.catalog.product.application.service.ProductService;
 import br.com.springecommerce.catalog.product.application.snapshot.ProductSnapshot;
 import br.com.springecommerce.inventory.stock.application.service.StockService;
+import br.com.springecommerce.inventory.stock.application.snapshot.StockSnapshot;
 import br.com.springecommerce.sales.cart.application.dto.CartAddProductRequestDto;
 import br.com.springecommerce.sales.cart.application.dto.CartItemResponseDto;
 import br.com.springecommerce.sales.cart.application.dto.CartRemoveProductsRequestDto;
@@ -65,25 +66,14 @@ public class CartService {
 
         if (cartOpt.isEmpty()) {
             Cart cart = Cart.createFrom(customerId);
-
-            return new CartResponseDto(
-                    cart,
-                    BigDecimal.ZERO,
-                    List.of()
-            );
+            return new CartResponseDto(cart, BigDecimal.ZERO, List.of());
         }
 
         Cart cart = cartOpt.get();
-
-        List<CartItemSnapshot> cartItemSnapshots =
-                repository.findCartItems(cart.getId());
+        List<CartItemSnapshot> cartItemSnapshots = repository.findCartItems(cart.getId());
 
         if (cartItemSnapshots.isEmpty()) {
-            return new CartResponseDto(
-                    cart,
-                    BigDecimal.ZERO,
-                    List.of()
-            );
+            return new CartResponseDto(cart, BigDecimal.ZERO, List.of());
         }
 
         List<UUID> productIds = cartItemSnapshots.stream()
@@ -91,24 +81,29 @@ public class CartService {
                 .distinct()
                 .toList();
 
-        List<ProductSnapshot> productSnapshots =
-                productService.findByIdIn(productIds);
-
-        Map<UUID, ProductSnapshot> productMap = productSnapshots.stream()
+        Map<UUID, ProductSnapshot> productMap = productService.findSnapshotsByIdIn(productIds).stream()
                 .collect(Collectors.toMap(
                         ProductSnapshot::id,
                         Function.identity()
                 ));
 
+        Map<UUID, StockSnapshot> stockMap = stockService.findSnapshotsByProductIdIn(productIds).stream()
+                .collect(Collectors.toMap(
+                        StockSnapshot::productId,
+                        Function.identity()
+                ));
+
         BigDecimal subtotal = cartCalculator.calculateSubtotal(
                 cartItemSnapshots,
-                productMap
+                productMap,
+                stockMap
         );
 
         List<CartItemResponseDto> items = cartItemSnapshots.stream()
                 .map(cartItem -> toCartItemResponse(
                         cartItem,
-                        productMap.get(cartItem.productId())
+                        productMap.get(cartItem.productId()),
+                        stockMap.get(cartItem.productId())
                 ))
                 .toList();
 
@@ -184,7 +179,8 @@ public class CartService {
 
     private CartItemResponseDto toCartItemResponse(
             CartItemSnapshot cartItem,
-            ProductSnapshot product
+            ProductSnapshot product,
+            StockSnapshot stock
     ) {
         if (product == null) {
             return new CartItemResponseDto(
@@ -198,7 +194,7 @@ public class CartService {
             );
         }
 
-        boolean active = product.active();
+        CartItemAvailability availability = resolveAvailability(cartItem, product, stock);
 
         return new CartItemResponseDto(
                 product.id(),
@@ -206,10 +202,24 @@ public class CartService {
                 product.productImage(),
                 product.effectivePrice(),
                 cartItem.quantity(),
-                cartCalculator.calculateItemTotal(cartItem, product).orElse(null),
-                active
-                        ? CartItemAvailability.AVAILABLE
-                        : CartItemAvailability.INACTIVE
+                cartCalculator.calculateItemTotal(cartItem, product, stock).orElse(null),
+                availability
         );
+    }
+
+    private CartItemAvailability resolveAvailability(
+            CartItemSnapshot cartItem,
+            ProductSnapshot product,
+            StockSnapshot stock
+    ) {
+        if (!product.active()) {
+            return CartItemAvailability.INACTIVE;
+        }
+
+        if (!cartCalculator.hasEnoughStock(cartItem, stock)) {
+            return CartItemAvailability.UNAVAILABLE;
+        }
+
+        return CartItemAvailability.AVAILABLE;
     }
 }
