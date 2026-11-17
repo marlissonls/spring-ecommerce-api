@@ -67,31 +67,6 @@ public class StockService {
         return new StockResponseDto(findEntityById(id));
     }
 
-    public Optional<Stock> findByProductId(UUID productId) {
-        return repository.findByProductId(productId);
-    }
-
-    public List<Stock> findByProductIdIn(List<UUID> ids) {
-        return repository.findByProductIdIn(ids);
-    }
-
-    public List<StockSnapshot> findSnapshotsByProductIdIn(List<UUID> productIds) {
-        if (productIds == null || productIds.isEmpty()) {
-            return List.of();
-        }
-
-        return repository.findSnapshotsByProductIdIn(productIds);
-    }
-
-    public void validateAvailableStock(UUID productId, Integer requestedQuantity) {
-        Stock stock = repository.findByProductId(productId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        StockErrors.Target.PRODUCT_ID,
-                        StockErrors.Code.STOCK_NOT_FOUND));
-
-        stock.validateAvailableStock(requestedQuantity);
-    }
-
     @Transactional
     public StockResponseDto create(StockCreateDto dto) {
         logger.debug("Creating stock. productId={}", dto.productId());
@@ -286,5 +261,28 @@ public class StockService {
                     logger.warn("Stock not found. id={}", id);
                     return new ResourceNotFoundException(StockErrors.Target.ID, StockErrors.Code.STOCK_NOT_FOUND);
                 });
+    }
+
+
+    public Optional<StockSnapshot> findByProductId(UUID productId) {
+        return repository.findByProductId(productId)
+                .map(StockSnapshot::new);
+    }
+
+    public List<StockSnapshot> findSnapshotsByProductIdIn(List<UUID> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return List.of();
+        }
+
+        return repository.findSnapshotsByProductIdIn(productIds);
+    }
+
+    public void validateAvailableStock(UUID productId, Integer requestedQuantity) {
+        Stock stock = repository.findByProductId(productId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        StockErrors.Target.PRODUCT_ID,
+                        StockErrors.Code.STOCK_NOT_FOUND));
+
+        stock.validateAvailableStock(requestedQuantity);
     }
 }

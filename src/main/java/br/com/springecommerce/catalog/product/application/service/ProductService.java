@@ -14,7 +14,6 @@ import br.com.springecommerce.catalog.product.presentation.filter.ProductManager
 import br.com.springecommerce.catalog.product.presentation.filter.ProductPublicFilter;
 import br.com.springecommerce.inventory.stock.application.service.StockService;
 import br.com.springecommerce.inventory.stock.application.snapshot.StockSnapshot;
-import br.com.springecommerce.inventory.stock.domain.model.Stock;
 import br.com.springecommerce.shared.exception.base.ConflictException;
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
 import br.com.springecommerce.shared.pagination.PageResponse;
@@ -148,12 +147,12 @@ public class ProductService {
     public ProductManagerDetailsResponseDto findByBarcode(String barcode) {
         logger.debug("Fetching product barcode={}", barcode);
 
-        var product = repository.findByBarcode(barcode)
+        Product product = repository.findByBarcode(barcode)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ProductErrors.Target.BARCODE,
                         ProductErrors.Code.PRODUCT_NOT_FOUND));
 
-        var productImages = findProductImagesByProductId(product.getId());
+        List<ProductImage> productImages = findProductImagesByProductId(product.getId());
 
         Optional<StockSnapshot> stock = getStock(product);
 
@@ -163,12 +162,12 @@ public class ProductService {
     public ProductManagerDetailsResponseDto findBySku(String sku) {
         logger.debug("Fetching product sku={}", sku);
 
-        var product = repository.findBySku(sku)
+        Product product = repository.findBySku(sku)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ProductErrors.Target.SKU,
                         ProductErrors.Code.PRODUCT_NOT_FOUND));
 
-        var productImages = findProductImagesByProductId(product.getId());
+        List<ProductImage> productImages = findProductImagesByProductId(product.getId());
 
         Optional<StockSnapshot> stock = getStock(product);
 
@@ -351,8 +350,7 @@ public class ProductService {
     }
 
     private Optional<StockSnapshot> getStock(Product product) {
-        return stockService.findByProductId(product.getId())
-                .map(StockSnapshot::new);
+        return stockService.findByProductId(product.getId());
     }
 
     private List<UUID> getProductIds(Page<Product> page) {
@@ -377,11 +375,11 @@ public class ProductService {
                 ));
     }
 
-    private Map<UUID, Stock> findStocksByProductIds(List<UUID> productIds) {
-        return stockService.findByProductIdIn(productIds)
+    private Map<UUID, StockSnapshot> findStocksByProductIds(List<UUID> productIds) {
+        return stockService.findSnapshotsByProductIdIn(productIds)
                 .stream()
                 .collect(Collectors.toMap(
-                        Stock::getProductId,
+                        StockSnapshot::productId,
                         Function.identity()
                 ));
     }

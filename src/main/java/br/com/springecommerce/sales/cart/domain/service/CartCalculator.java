@@ -11,36 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-//@Component
-//public class CartCalculator {
-//    public BigDecimal calculateSubtotal(
-//            List<CartItemSnapshot> cartItems,
-//            Map<UUID, ProductSnapshot> products
-//    ) {
-//        return cartItems.stream()
-//                .map(item -> calculateItemTotal(
-//                        item,
-//                        products.get(item.productId())
-//                ))
-//                .flatMap(Optional::stream)
-//                .reduce(BigDecimal.ZERO, BigDecimal::add);
-//    }
-//
-//    public Optional<BigDecimal> calculateItemTotal(
-//            CartItemSnapshot cartItem,
-//            ProductSnapshot product
-//    ) {
-//        if (product == null || !product.active()) {
-//            return Optional.empty();
-//        }
-//
-//        return Optional.of(
-//                product.effectivePrice()
-//                        .multiply(BigDecimal.valueOf(cartItem.quantity()))
-//        );
-//    }
-//}
-
 @Component
 public class CartCalculator {
 
