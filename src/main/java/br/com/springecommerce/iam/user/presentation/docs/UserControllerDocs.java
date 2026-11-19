@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +63,7 @@ public interface UserControllerDocs {
                     @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
             }
     )
-    ResponseEntity<UserResponseDto> create(UserCreateDto dto);
+    ResponseEntity<UserResponseDto> create(@Valid UserCreateDto dto);
 
     @Operation(
             summary = "Add a new User Employee",
@@ -78,7 +79,7 @@ public interface UserControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<UserResponseDto> createEmployee(UserEmployeeCreateDto dto);
+    ResponseEntity<UserResponseDto> createEmployee(@Valid UserEmployeeCreateDto dto);
 
     @Operation(
             summary = "Assign role to User",
@@ -94,7 +95,7 @@ public interface UserControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<Void> assignRoleToUser(UserUpdateRoleDto dto);
+    ResponseEntity<Void> assignRoleToUser(@Valid UserUpdateRoleDto dto);
 
     @Operation(
             summary = "Remove role from User",
@@ -110,7 +111,7 @@ public interface UserControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<Void> removeRoleFromUser(UserUpdateRoleDto dto);
+    ResponseEntity<Void> removeRoleFromUser(@Valid UserUpdateRoleDto dto);
 
     @Operation(
             summary = "Delete one User",

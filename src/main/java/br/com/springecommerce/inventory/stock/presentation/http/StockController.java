@@ -33,7 +33,7 @@ public class StockController implements StockControllerDocs {
 
     @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<StockResponseDto> create(@RequestBody @Valid StockCreateDto dto) {
+    public ResponseEntity<StockResponseDto> create(@RequestBody StockCreateDto dto) {
         var response = service.create(dto);
 
         URI location = ServletUriComponentsBuilder
@@ -66,7 +66,7 @@ public class StockController implements StockControllerDocs {
     @PatchMapping(path = "/{id}/minimum-stock", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateMinimumQuantity(
             @PathVariable("id") UUID id,
-            @RequestBody @Valid StockMinimumQuantityUpdateDto dto) {
+            @RequestBody StockMinimumQuantityUpdateDto dto) {
 
         service.updateMinimumQuantity(id, dto);
         return ResponseEntity.noContent().build();
@@ -76,7 +76,7 @@ public class StockController implements StockControllerDocs {
     @PatchMapping(path = "/{id}/increase", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> increase(
             @PathVariable("id") UUID id,
-            @RequestBody @Valid StockAvailableQuantityUpdateDto dto) {
+            @RequestBody StockAvailableQuantityUpdateDto dto) {
 
         service.increase(id, dto);
         return ResponseEntity.noContent().build();
@@ -86,7 +86,7 @@ public class StockController implements StockControllerDocs {
     @PatchMapping(path = "/{id}/write-off", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> writeOff(
             @PathVariable("id") UUID id,
-            @RequestBody @Valid StockAvailableQuantityUpdateDto dto) {
+            @RequestBody StockAvailableQuantityUpdateDto dto) {
 
         service.writeOff(id, dto);
         return ResponseEntity.noContent().build();
@@ -96,7 +96,7 @@ public class StockController implements StockControllerDocs {
     @PatchMapping(path = "/{id}/reserve", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> reserve(
             @PathVariable("id") UUID id,
-            @RequestBody @Valid StockAvailableQuantityUpdateDto dto) {
+            @RequestBody StockAvailableQuantityUpdateDto dto) {
 
         service.reserve(id, dto);
         return ResponseEntity.noContent().build();
@@ -106,7 +106,7 @@ public class StockController implements StockControllerDocs {
     @PatchMapping(path = "/{id}/release", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> release(
             @PathVariable("id") UUID id,
-            @RequestBody @Valid StockAvailableQuantityUpdateDto dto) {
+            @RequestBody StockAvailableQuantityUpdateDto dto) {
 
         service.release(id, dto);
         return ResponseEntity.noContent().build();

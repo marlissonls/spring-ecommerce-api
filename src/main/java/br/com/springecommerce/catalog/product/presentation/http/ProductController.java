@@ -137,7 +137,7 @@ public class ProductController implements ProductControllerDocs {
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<Void> addImages(
             @PathVariable("id") UUID id,
-            @RequestBody @Valid List<ProductImageCreateDto> images
+            @RequestBody List<ProductImageCreateDto> images
     ) {
         service.addImages(id, images);
         return ResponseEntity.noContent().build();

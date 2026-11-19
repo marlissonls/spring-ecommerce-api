@@ -57,7 +57,7 @@ public class UserController implements UserControllerDocs {
 
     @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserResponseDto> create(@RequestBody @Valid UserCreateDto dto) {
+    public ResponseEntity<UserResponseDto> create(@RequestBody UserCreateDto dto) {
 
         UserResponseDto response = commandService.create(dto);
 
@@ -73,7 +73,7 @@ public class UserController implements UserControllerDocs {
     @Override
     @PostMapping(path = "/employee", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponseDto> createEmployee(@RequestBody @Valid UserEmployeeCreateDto dto) {
+    public ResponseEntity<UserResponseDto> createEmployee(@RequestBody UserEmployeeCreateDto dto) {
 
         UserResponseDto response = commandService.createEmployee(dto);
 
@@ -89,7 +89,7 @@ public class UserController implements UserControllerDocs {
     @Override
     @PutMapping(path = "/assignRole", consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> assignRoleToUser(@RequestBody @Valid UserUpdateRoleDto dto) {
+    public ResponseEntity<Void> assignRoleToUser(@RequestBody UserUpdateRoleDto dto) {
 
         commandService.assignRoleToUser(dto);
         return ResponseEntity.noContent().build();
@@ -98,7 +98,7 @@ public class UserController implements UserControllerDocs {
     @Override
     @PutMapping(path = "/removeRole", consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> removeRoleFromUser(@RequestBody @Valid UserUpdateRoleDto dto) {
+    public ResponseEntity<Void> removeRoleFromUser(@RequestBody UserUpdateRoleDto dto) {
 
         commandService.removeRoleFromUser(dto);
         return ResponseEntity.noContent().build();

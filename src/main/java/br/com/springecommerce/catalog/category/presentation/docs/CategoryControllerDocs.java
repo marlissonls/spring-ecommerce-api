@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -113,7 +114,7 @@ public interface CategoryControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<CategoryResponseDto> create(CategoryRequestDto dto);
+    ResponseEntity<CategoryResponseDto> create(@Valid CategoryRequestDto dto);
 
     @Operation(
             summary = "Update a category",
@@ -136,7 +137,7 @@ public interface CategoryControllerDocs {
     @SecurityRequirement(name = "bearerAuth")
     ResponseEntity<CategoryResponseDto> update(
             UUID id,
-            CategoryRequestDto dto
+            @Valid CategoryRequestDto dto
     );
 
     @Operation(
