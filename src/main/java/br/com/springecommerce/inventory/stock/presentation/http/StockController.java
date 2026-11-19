@@ -25,17 +25,16 @@ import java.util.UUID;
 @PreAuthorize("hasRole('MANAGER')")
 public class StockController implements StockControllerDocs {
 
-    private final StockService commandService;
-
-
-    public StockController(StockService commandService) {
-        this.commandService = commandService;
+    private final StockService service;
+    
+    public StockController(StockService service) {
+        this.service = service;
     }
 
     @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StockResponseDto> create(@RequestBody @Valid StockCreateDto dto) {
-        var response = commandService.create(dto);
+        var response = service.create(dto);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -52,7 +51,7 @@ public class StockController implements StockControllerDocs {
             @ModelAttribute StockManagerFilter filter,
             @PageableDefault(size = 12, sort = "availableQuantity") Pageable pageable
     ) {
-        return ResponseEntity.ok().body(commandService.findAll(
+        return ResponseEntity.ok().body(service.findAll(
                 filter, pageable
         ));
     }
@@ -60,7 +59,7 @@ public class StockController implements StockControllerDocs {
     @Override
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StockResponseDto> findById(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok().body(commandService.findById(id));
+        return ResponseEntity.ok().body(service.findById(id));
     }
 
     @Override
@@ -69,7 +68,7 @@ public class StockController implements StockControllerDocs {
             @PathVariable("id") UUID id,
             @RequestBody @Valid StockMinimumQuantityUpdateDto dto) {
 
-        commandService.updateMinimumQuantity(id, dto);
+        service.updateMinimumQuantity(id, dto);
         return ResponseEntity.noContent().build();
     }
 
@@ -79,7 +78,7 @@ public class StockController implements StockControllerDocs {
             @PathVariable("id") UUID id,
             @RequestBody @Valid StockAvailableQuantityUpdateDto dto) {
 
-        commandService.increase(id, dto);
+        service.increase(id, dto);
         return ResponseEntity.noContent().build();
     }
 
@@ -89,7 +88,7 @@ public class StockController implements StockControllerDocs {
             @PathVariable("id") UUID id,
             @RequestBody @Valid StockAvailableQuantityUpdateDto dto) {
 
-        commandService.writeOff(id, dto);
+        service.writeOff(id, dto);
         return ResponseEntity.noContent().build();
     }
 
@@ -99,7 +98,7 @@ public class StockController implements StockControllerDocs {
             @PathVariable("id") UUID id,
             @RequestBody @Valid StockAvailableQuantityUpdateDto dto) {
 
-        commandService.reserve(id, dto);
+        service.reserve(id, dto);
         return ResponseEntity.noContent().build();
     }
 
@@ -109,10 +108,9 @@ public class StockController implements StockControllerDocs {
             @PathVariable("id") UUID id,
             @RequestBody @Valid StockAvailableQuantityUpdateDto dto) {
 
-        commandService.release(id, dto);
+        service.release(id, dto);
         return ResponseEntity.noContent().build();
     }
-
 }
 
 

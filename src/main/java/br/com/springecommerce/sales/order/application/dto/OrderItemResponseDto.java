@@ -9,7 +9,7 @@ import java.util.UUID;
 public record OrderItemResponseDto (
         UUID productId,
         String productTitle,
-        String image,
+        String productImage,
         BigDecimal price,
         Integer quantity,
         BigDecimal totalPrice
