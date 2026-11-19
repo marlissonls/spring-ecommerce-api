@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -80,7 +81,7 @@ public interface RoleControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<RoleResponseDto> create(RoleCreateDto dto);
+    ResponseEntity<RoleResponseDto> create(@Valid RoleCreateDto dto);
 
     @Operation(
             summary = "Update one Role",
@@ -98,6 +99,6 @@ public interface RoleControllerDocs {
     @SecurityRequirement(name = "bearerAuth")
     ResponseEntity<RoleResponseDto> update(
             UUID id,
-            RoleUpdateDto dto
+            @Valid RoleUpdateDto dto
     );
 }

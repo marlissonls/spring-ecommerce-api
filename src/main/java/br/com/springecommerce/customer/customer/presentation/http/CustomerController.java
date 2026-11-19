@@ -61,7 +61,7 @@ public class CustomerController implements CustomerControllerDocs {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CustomerResponseDto> create(
             @AuthenticationPrincipal AuthenticatedUser auth,
-            @RequestBody @Valid CustomerCreateDto dto
+            @RequestBody CustomerCreateDto dto
     ) {
         CustomerResponseDto response = service.create(auth.getCustomerId(), dto);
 
@@ -79,7 +79,7 @@ public class CustomerController implements CustomerControllerDocs {
     @PreAuthorize("hasRole('ADMIN') or authentication.principal.getId().equals(#id)")
     public ResponseEntity<CustomerResponseDto> update(
             @PathVariable("id") UUID id,
-            @RequestBody @Valid CustomerUpdateDto dto)
+            @RequestBody CustomerUpdateDto dto)
     {
         return ResponseEntity.ok().body(service.update(id, dto));
     }

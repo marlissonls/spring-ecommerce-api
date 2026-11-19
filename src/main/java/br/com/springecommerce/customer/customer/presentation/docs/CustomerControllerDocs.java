@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,9 @@ public interface CustomerControllerDocs {
             }
     )
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<PageResponse<CustomerResponseDto>> findAll(@ParameterObject Pageable pageable);
+    ResponseEntity<PageResponse<CustomerResponseDto>> findAll(
+            // Flattens Pageable properties into individual query parameters (page, size, sort) in Swagger UI
+            @ParameterObject Pageable pageable);
 
     @Operation(
             summary = "Fetching one Customer",
@@ -80,7 +83,7 @@ public interface CustomerControllerDocs {
     @SecurityRequirement(name = "bearerAuth")
     ResponseEntity<CustomerResponseDto> create(
             AuthenticatedUser auth,
-            CustomerCreateDto dto
+            @Valid CustomerCreateDto dto
     );
 
     @Operation(
@@ -99,7 +102,7 @@ public interface CustomerControllerDocs {
     @SecurityRequirement(name = "bearerAuth")
     ResponseEntity<CustomerResponseDto> update(
             UUID id,
-            CustomerUpdateDto dto
+            @Valid CustomerUpdateDto dto
     );
 
     @Operation(

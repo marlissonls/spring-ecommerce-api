@@ -55,7 +55,7 @@ public class RoleController implements RoleControllerDocs {
     @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RoleResponseDto> create(
-            @Valid @RequestBody RoleCreateDto dto
+            @RequestBody RoleCreateDto dto
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(service.create(dto));
@@ -65,7 +65,7 @@ public class RoleController implements RoleControllerDocs {
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RoleResponseDto> update(
             @PathVariable("id") UUID id,
-            @Valid @RequestBody RoleUpdateDto dto
+            @RequestBody RoleUpdateDto dto
     ) {
         return ResponseEntity.ok().body(service.update(id, dto));
     }

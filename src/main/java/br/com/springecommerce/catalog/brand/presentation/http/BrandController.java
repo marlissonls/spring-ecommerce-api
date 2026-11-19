@@ -48,7 +48,7 @@ public class BrandController implements BrandControllerDocs {
     @Override
     @PostMapping(path = "/manager", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<BrandResponseDto> create(@RequestBody @Valid BrandRequestDto dto) {
+    public ResponseEntity<BrandResponseDto> create(@RequestBody BrandRequestDto dto) {
         BrandResponseDto response = service.create(dto);
 
         URI location = ServletUriComponentsBuilder
@@ -71,7 +71,7 @@ public class BrandController implements BrandControllerDocs {
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<BrandResponseDto> update(
             @PathVariable("id") UUID id,
-            @RequestBody @Valid BrandRequestDto dto) {
+            @RequestBody BrandRequestDto dto) {
         return ResponseEntity.ok().body(service.update(id, dto));
     }
 

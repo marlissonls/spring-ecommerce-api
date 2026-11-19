@@ -57,7 +57,7 @@ public class CategoryController implements CategoryControllerDocs {
     @Override
     @PostMapping(path = "/manager", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<CategoryResponseDto> create(@RequestBody @Valid CategoryRequestDto dto) {
+    public ResponseEntity<CategoryResponseDto> create(@RequestBody CategoryRequestDto dto) {
         CategoryResponseDto response = service.create(dto);
 
         URI location = ServletUriComponentsBuilder
@@ -73,7 +73,7 @@ public class CategoryController implements CategoryControllerDocs {
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<CategoryResponseDto> update(
             @PathVariable("id") UUID id,
-            @RequestBody @Valid CategoryRequestDto dto) {
+            @RequestBody CategoryRequestDto dto) {
         return ResponseEntity.ok().body(service.update(id, dto));
     }
 

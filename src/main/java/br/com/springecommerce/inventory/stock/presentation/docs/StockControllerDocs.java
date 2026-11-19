@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public interface StockControllerDocs {
                     @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
             }
     )
-    ResponseEntity<StockResponseDto> create(StockCreateDto dto);
+    ResponseEntity<StockResponseDto> create(@Valid StockCreateDto dto);
 
 
     @Operation(
@@ -104,7 +105,7 @@ public interface StockControllerDocs {
     )
     ResponseEntity<Void> updateMinimumQuantity(
             UUID id,
-            StockMinimumQuantityUpdateDto dto
+            @Valid StockMinimumQuantityUpdateDto dto
     );
 
 
@@ -127,7 +128,7 @@ public interface StockControllerDocs {
     )
     ResponseEntity<Void> increase(
             UUID id,
-            StockAvailableQuantityUpdateDto dto
+            @Valid StockAvailableQuantityUpdateDto dto
     );
 
 
@@ -150,7 +151,7 @@ public interface StockControllerDocs {
     )
     ResponseEntity<Void> writeOff(
             UUID id,
-            StockAvailableQuantityUpdateDto dto
+            @Valid StockAvailableQuantityUpdateDto dto
     );
 
 
@@ -173,7 +174,7 @@ public interface StockControllerDocs {
     )
     ResponseEntity<Void> reserve(
             UUID id,
-            StockAvailableQuantityUpdateDto dto
+            @Valid StockAvailableQuantityUpdateDto dto
     );
 
 
@@ -196,7 +197,7 @@ public interface StockControllerDocs {
     )
     ResponseEntity<Void> release(
             UUID id,
-            StockAvailableQuantityUpdateDto dto
+            @Valid StockAvailableQuantityUpdateDto dto
     );
 }
 
