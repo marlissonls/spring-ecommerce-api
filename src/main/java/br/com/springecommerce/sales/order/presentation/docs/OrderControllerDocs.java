@@ -2,6 +2,8 @@ package br.com.springecommerce.sales.order.presentation.docs;
 
 import br.com.springecommerce.iam.security.principal.AuthenticatedUser;
 import br.com.springecommerce.sales.order.application.dto.OrderResponseDto;
+import br.com.springecommerce.sales.order.presentation.filter.OrderCustomerFilter;
+import br.com.springecommerce.sales.order.presentation.filter.OrderManagerFilter;
 import br.com.springecommerce.shared.exception.response.ExceptionResponse;
 import br.com.springecommerce.shared.pagination.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,11 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.UUID;
 
@@ -63,8 +61,31 @@ public interface OrderControllerDocs {
                     @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
             }
     )
-    ResponseEntity<PageResponse<OrderResponseDto>> getOrders(
+    ResponseEntity<PageResponse<OrderResponseDto>> getCustomerViewOrders(
             AuthenticatedUser auth,
+            @ParameterObject OrderCustomerFilter filter,
+            @ParameterObject Pageable pageable
+    );
+
+
+    @Operation(
+            summary = "Find all Orders",
+            description = "Retrieves all orders belonging to the currently authenticated user with pagination, sorted by creation date in descending order by default.",
+            tags = {"Orders"},
+            responses = {
+                    @ApiResponse(description = "OK", responseCode = "200"),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class))
+                    ),
+                    @ApiResponse(description = "Unauthorized", responseCode = "401", content = @Content),
+                    @ApiResponse(description = "Forbidden", responseCode = "403", content = @Content),
+                    @ApiResponse(description = "Internal Server Error", responseCode = "500", content = @Content)
+            }
+    )
+    ResponseEntity<PageResponse<OrderResponseDto>> getManagerViewOrders(
+            @ParameterObject OrderManagerFilter filter,
             @ParameterObject Pageable pageable
     );
 
