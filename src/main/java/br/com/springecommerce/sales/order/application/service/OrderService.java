@@ -10,6 +10,10 @@ import br.com.springecommerce.sales.order.domain.model.Order;
 import br.com.springecommerce.sales.order.domain.exception.OrderErrors;
 import br.com.springecommerce.sales.order.infrastructure.persistence.repository.OrderRepository;
 import br.com.springecommerce.sales.order.domain.valueobject.OrderItem;
+import br.com.springecommerce.sales.order.infrastructure.specification.OrderSpecificationFactory;
+import br.com.springecommerce.sales.order.infrastructure.specification.OrderSpecifications;
+import br.com.springecommerce.sales.order.presentation.filter.OrderCustomerFilter;
+import br.com.springecommerce.sales.order.presentation.filter.OrderManagerFilter;
 import br.com.springecommerce.shared.exception.base.ResourceNotFoundException;
 import br.com.springecommerce.shared.pagination.PageResponse;
 import org.slf4j.Logger;
@@ -57,10 +61,40 @@ public class OrderService {
         return new OrderResponseDto(order, items);
     }
 
-    public PageResponse<OrderResponseDto> getOrders(UUID customerId, Pageable pageable) {
+    public PageResponse<OrderResponseDto> getCustomerViewOrders(
+            UUID customerId,
+            OrderCustomerFilter filter,
+            Pageable pageable) {
         logger.debug("Fetching orders for customerId={}", customerId);
 
-        Page<Order> page = repository.findAllByCustomerId(customerId, pageable);
+        Page<Order> page = repository.findAll(
+                OrderSpecificationFactory.publicView(filter)
+                        .and(OrderSpecifications.customerId(customerId)),
+                pageable
+        );
+
+        List<OrderResponseDto> orders = page
+                .map(order -> new OrderResponseDto(order, null))
+                .getContent();
+
+        return new PageResponse<>(
+                orders,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements()
+        );
+    }
+
+    public PageResponse<OrderResponseDto> getManagerViewOrders(
+            OrderManagerFilter filter,
+            Pageable pageable
+    ) {
+        logger.debug("Fetching manager orders. filter={}", filter);
+
+        Page<Order> page = repository.findAll(
+                OrderSpecificationFactory.managerView(filter),
+                pageable
+        );
 
         List<OrderResponseDto> orders = page
                 .map(order -> new OrderResponseDto(order, null))
