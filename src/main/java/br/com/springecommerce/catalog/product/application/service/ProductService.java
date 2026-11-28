@@ -389,8 +389,6 @@ public class ProductService {
         Product product = findEntityById(id);
 
         product.addImages(images);
-
-        product.activate();
     }
 
 //    @Transactional

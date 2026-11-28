@@ -6,8 +6,6 @@ import br.com.springecommerce.catalog.product.presentation.docs.ProductControlle
 import br.com.springecommerce.catalog.product.presentation.filter.ProductManagerFilter;
 import br.com.springecommerce.catalog.product.presentation.filter.ProductPublicFilter;
 import br.com.springecommerce.shared.pagination.PageResponse;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
